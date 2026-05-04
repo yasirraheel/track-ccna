@@ -1,0 +1,387 @@
+﻿{
+    "version":  1,
+    "purpose":  "Source .pkt/.zip labs to be converted into graded Packet Tracer .pka activities",
+    "labCount":  76,
+    "labs":  [
+                 {
+                     "source":  "001 - Basic Router Security Configuration 1.pkt",
+                     "target":  "001 - Basic Router Security Configuration 1.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "002 - Basic Router Security Configuration 2.pkt",
+                     "target":  "002 - Basic Router Security Configuration 2.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "003 - Basic Router Security Configuration 3.pkt",
+                     "target":  "003 - Basic Router Security Configuration 3.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "004 - Basic Serial Connection Configuration.pkt",
+                     "target":  "004 - Basic Serial Connection Configuration.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "005 - VLAN Configuration.pkt",
+                     "target":  "005 - VLAN Configuration.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "006 - VLAN Configuration Trunk Encapsulation.pkt",
+                     "target":  "006 - VLAN Configuration Trunk Encapsulation.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "007 - Inter-VLAN Routing (ROAS).pkt",
+                     "target":  "007 - Inter-VLAN Routing (ROAS).pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "008 - Inter-VLAN Routing (ROAS) Troubleshooting 1.pkt",
+                     "target":  "008 - Inter-VLAN Routing (ROAS) Troubleshooting 1.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "009 - Inter-VLAN Routing (ROAS) Troubleshooting 2.pkt",
+                     "target":  "009 - Inter-VLAN Routing (ROAS) Troubleshooting 2.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "010 - Local Username-Password Database.pkt",
+                     "target":  "010 - Local Username-Password Database.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "011 - Message of the Day and Login Banners.pkt",
+                     "target":  "011 - Message of the Day and Login Banners.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "012 - Naming VLANs.pkt",
+                     "target":  "012 - Naming VLANs.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "013 - CDP part 1.pkt",
+                     "target":  "013 - CDP part 1.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "014 - CDP part 2.pkt",
+                     "target":  "014 - CDP part 2.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "015 - System Configuration Dialog.pkt",
+                     "target":  "015 - System Configuration Dialog.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "016 - Loopback Interface Configuration.pkt",
+                     "target":  "016 - Loopback Interface Configuration.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "017 - Port Security (Part 1).pkt",
+                     "target":  "017 - Port Security (Part 1).pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "018 - Port Security (Part 2).pkt",
+                     "target":  "018 - Port Security (Part 2).pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "019 - Port Security (Part 3).pkt",
+                     "target":  "019 - Port Security (Part 3).pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "020 - Review Configuration Lab 1.pkt",
+                     "target":  "020 - Review Configuration Lab 1.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "021 - Review Troubleshooting Lab 1.pkt",
+                     "target":  "021 - Review Troubleshooting Lab 1.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "022 - Telnet.pkt",
+                     "target":  "022 - Telnet.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "023 - SSH.pkt",
+                     "target":  "023 - SSH.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "024 - Static Routing (Part 1).pkt",
+                     "target":  "024 - Static Routing (Part 1).pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "025 - Static Routing (Part 2).pkt",
+                     "target":  "025 - Static Routing (Part 2).pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "026 - Static Routing (Part 3).pkt",
+                     "target":  "026 - Static Routing (Part 3).pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "027 - RIP (Part 1).pkt",
+                     "target":  "027 - RIP (Part 1).pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "028 - RIP (Part 2).pkt",
+                     "target":  "028 - RIP (Part 2).pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "029 - Standards ACLs (ACLs Part 1).pkt",
+                     "target":  "029 - Standards ACLs (ACLs Part 1).pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "030 - Extended ACLs (ACLs Part 2).pkt",
+                     "target":  "030 - Extended ACLs (ACLs Part 2).pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "031 - Named ACLs (ACLs Part 3).pkt",
+                     "target":  "031 - Named ACLs (ACLs Part 3).pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "032 - NTP (Part 1).pkt",
+                     "target":  "032 - NTP (Part 1).pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "033 - NTP (Part 2).pkt",
+                     "target":  "033 - NTP (Part 2).pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "034 - LLDP.pkt",
+                     "target":  "034 - LLDP.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "035 - DHCP.pkt",
+                     "target":  "035 - DHCP.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "036 - DNS.pkt",
+                     "target":  "036 - DNS.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "037 - Static NAT.pkt",
+                     "target":  "037 - Static NAT.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "038 - Dynamic NAT.pkt",
+                     "target":  "038 - Dynamic NAT.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "039 - PAT.pkt",
+                     "target":  "039 - PAT.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "040 - Syslog.pkt",
+                     "target":  "040 - Syslog.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "041 - Password Recovery, Configuration Backup, IOS Upgrade.pkt",
+                     "target":  "041 - Password Recovery, Configuration Backup, IOS Upgrade.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "042 - IPv6.pkt",
+                     "target":  "042 - IPv6.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "043 - Review Configuration Lab 2.pkt",
+                     "target":  "043 - Review Configuration Lab 2.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "044 - Review Troubleshooting Lab 2.pkt",
+                     "target":  "044 - Review Troubleshooting Lab 2.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "045 - DTP.pkt",
+                     "target":  "045 - DTP.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "046 - VTP.pkt",
+                     "target":  "046 - VTP.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "047 - VTP Troubleshooting.pkt",
+                     "target":  "047 - VTP Troubleshooting.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "048 - STP.pkt",
+                     "target":  "048 - STP.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "049 - STP Election.pkt",
+                     "target":  "049 - STP Election.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "050 - EtherChannel.pkt",
+                     "target":  "050 - EtherChannel.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "051 - EtherChannel Troubleshooting.pkt",
+                     "target":  "051 - EtherChannel Troubleshooting.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "052 - Inter-VLAN Routing (SVI, ROAS).pkt",
+                     "target":  "052 - Inter-VLAN Routing (SVI, ROAS).pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "053 - Inter-VLAN Routing Troubleshooting.pkt",
+                     "target":  "053 - Inter-VLAN Routing Troubleshooting.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "054 - OSPF (Part 1, Single Area).pkt",
+                     "target":  "054 - OSPF (Part 1, Single Area).pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "055 - OSPF (Part 2, Multi-Area).pkt",
+                     "target":  "055 - OSPF (Part 2, Multi-Area).pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "056 - OSPF Troubleshooting.pkt",
+                     "target":  "056 - OSPF Troubleshooting.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "057 - OSPFv3 for IPv6.pkt",
+                     "target":  "057 - OSPFv3 for IPv6.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "058 - EIGRP.pkt",
+                     "target":  "058 - EIGRP.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "059 - EIGRP Troubleshooting.pkt",
+                     "target":  "059 - EIGRP Troubleshooting.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "060 - EIGRP for IPv6.pkt",
+                     "target":  "060 - EIGRP for IPv6.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "061 - PPP with PAP and CHAP.pkt",
+                     "target":  "061 - PPP with PAP and CHAP.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "062 - PPP Troubleshooting.pkt",
+                     "target":  "062 - PPP Troubleshooting.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "063 - MultiLink PPP.zip",
+                     "target":  "063 - MultiLink PPP.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "064 - PPPoE.zip",
+                     "target":  "064 - PPPoE.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "065 - GRE.pkt",
+                     "target":  "065 - GRE.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "066 - GRE Troubleshooting.pkt",
+                     "target":  "066 - GRE Troubleshooting.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "067 - BGP.pkt",
+                     "target":  "067 - BGP.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "068 - BGP Troubleshooting.pkt",
+                     "target":  "068 - BGP Troubleshooting.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "069 - HSRP.pkt",
+                     "target":  "069 - HSRP.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "070 - HSRP Troubleshooting.pkt",
+                     "target":  "070 - HSRP Troubleshooting.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "071 - IPv4 and IPv6 ACLs.pkt",
+                     "target":  "071 - IPv4 and IPv6 ACLs.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "072 - ACL Troubleshooting.pkt",
+                     "target":  "072 - ACL Troubleshooting.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "073 - SPAN.pkt",
+                     "target":  "073 - SPAN.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "074 - IP SLA.zip",
+                     "target":  "074 - IP SLA.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "075 - Review Configuration Lab 3.pkt",
+                     "target":  "075 - Review Configuration Lab 3.pka",
+                     "graded":  false
+                 },
+                 {
+                     "source":  "076 - Review Troubleshooting Lab 3.pkt",
+                     "target":  "076 - Review Troubleshooting Lab 3.pka",
+                     "graded":  false
+                 }
+             ]
+}

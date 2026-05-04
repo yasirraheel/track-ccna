@@ -1,0 +1,2837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team Hifsa CCNA Tracker</title>
+  <style>
+    :root {
+      --bg: #071019;
+      --panel: rgba(15, 32, 50, 0.88);
+      --line: rgba(255, 255, 255, 0.1);
+      --text: #eff6ff;
+      --muted: #a8bdd5;
+      --accent: #66d7c0;
+      --warning: #f1b660;
+      --danger: #ff8674;
+      --success: #63dd95;
+      --shadow: 0 18px 50px rgba(0, 0, 0, 0.3);
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --font-head: "Bahnschrift", "Trebuchet MS", sans-serif;
+      --font-body: "Segoe UI", "Calibri", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-body);
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(102, 215, 192, 0.14), transparent 28%),
+        radial-gradient(circle at top right, rgba(241, 182, 96, 0.12), transparent 20%),
+        linear-gradient(180deg, #061019 0%, #0a1624 100%);
+    }
+
+    .app {
+      width: min(1120px, calc(100% - 24px));
+      margin: 20px auto 40px;
+    }
+
+    .panel, .stat, .task-row {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.82fr);
+      gap: 16px;
+      padding: 18px;
+      border-radius: var(--radius-lg);
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at top right, rgba(102, 215, 192, 0.15), transparent 28%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.02), transparent 45%);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -60px;
+      top: -60px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(102, 215, 192, 0.14), transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-copy {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-topline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      font-family: var(--font-head);
+    }
+
+    h1 {
+      font-size: clamp(1.65rem, 3.15vw, 2.35rem);
+      line-height: 1.08;
+      max-width: 18ch;
+    }
+
+    .hero p, .muted {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .hero p {
+      max-width: 58ch;
+      margin: 0;
+    }
+
+    .save-box {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--line);
+      align-content: start;
+      position: relative;
+      z-index: 1;
+    }
+
+    .save-box-head {
+      display: grid;
+      gap: 6px;
+    }
+
+    .save-box-kicker {
+      color: var(--accent);
+      font-size: 0.76rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .status-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--warning);
+      box-shadow: 0 0 0 5px rgba(241, 182, 96, 0.12);
+      flex-shrink: 0;
+    }
+
+    .status-line.connected .status-dot {
+      background: var(--success);
+      box-shadow: 0 0 0 5px rgba(99, 221, 149, 0.12);
+    }
+
+    .button-row, .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button, input, select { font: inherit; }
+
+    button {
+      cursor: pointer;
+      border: 0;
+      border-radius: 999px;
+      padding: 11px 16px;
+      transition: transform 0.18s ease, background 0.18s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+
+    .primary {
+      background: linear-gradient(135deg, var(--accent), #92edd5);
+      color: #072029;
+      font-weight: 800;
+    }
+
+    .secondary, .filter-chip, .ghost {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .secondary.active, .filter-chip.active, .ghost.active {
+      background: rgba(102, 215, 192, 0.14);
+      border-color: rgba(102, 215, 192, 0.32);
+      color: #dffff6;
+    }
+
+    .stats {
+      margin-top: 2px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease, background 0.28s ease, opacity 0.24s ease;
+      will-change: transform, box-shadow;
+    }
+
+    .stats-shell {
+      position: relative;
+    }
+
+    .stat {
+      min-height: 94px;
+      border-radius: var(--radius-md);
+      padding: 14px;
+      display: grid;
+      gap: 4px;
+      align-content: start;
+    }
+
+    .stat span {
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.82rem;
+    }
+
+    .stat strong {
+      font-family: var(--font-head);
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+      line-height: 1;
+    }
+
+    .stats-dock {
+      position: fixed;
+      top: 12px;
+      left: 50%;
+      width: min(1120px, calc(100% - 24px));
+      padding: 10px;
+      border-radius: 22px;
+      background: rgba(7, 16, 25, 0.94);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 22px 44px rgba(0, 0, 0, 0.34);
+      backdrop-filter: blur(18px);
+      z-index: 45;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, -16px) scale(0.985);
+      transition: opacity 0.28s ease, transform 0.28s ease;
+    }
+
+    .stats-dock.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate(-50%, 0) scale(1);
+    }
+
+    .stats-dock .stat {
+      min-height: 82px;
+      padding: 12px;
+      gap: 3px;
+    }
+
+    .stats-dock .stat strong {
+      font-size: clamp(1.55rem, 2.25vw, 2.05rem);
+    }
+
+    .stats-dock .muted {
+      font-size: 0.78rem;
+      line-height: 1.35;
+    }
+
+    @keyframes statsDockIn {
+      from {
+        transform: translateY(-12px);
+        opacity: 0.45;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .toolbar {
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: var(--radius-lg);
+    }
+
+    .search {
+      width: 100%;
+      margin-bottom: 14px;
+    }
+
+    .search input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.22);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px 16px;
+      outline: none;
+    }
+
+    .search input:focus {
+      border-color: rgba(102, 215, 192, 0.6);
+      box-shadow: 0 0 0 4px rgba(102, 215, 192, 0.12);
+    }
+
+    .toolbar-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .results {
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .schedule-toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .schedule-toolbar-copy {
+      display: grid;
+      gap: 6px;
+      max-width: 60ch;
+    }
+
+    .schedule-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .schedule-field {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(0, 0, 0, 0.22);
+      border: 1px solid var(--line);
+      color: var(--muted);
+    }
+
+    .schedule-field input {
+      width: 78px;
+      background: transparent;
+      color: var(--text);
+      border: 0;
+      outline: none;
+      text-align: center;
+      font-weight: 700;
+      padding: 0;
+    }
+
+    .schedule-field input::-webkit-outer-spin-button,
+    .schedule-field input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .schedule-field input[type="number"] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+
+    .schedule-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }
+
+    .due-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .due-card {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(0, 0, 0, 0.18);
+    }
+
+    .due-card strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .due-card.due {
+      border-color: rgba(241, 182, 96, 0.35);
+      background: rgba(241, 182, 96, 0.09);
+    }
+
+    .due-card.overdue {
+      border-color: rgba(255, 134, 116, 0.38);
+      background: rgba(255, 134, 116, 0.1);
+    }
+
+    .list-panel {
+      margin-top: 18px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .task-row {
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 14px;
+      position: relative;
+    }
+
+    .task-row::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 16px;
+      bottom: 16px;
+      width: 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .task-row.pending::before { background: var(--warning); }
+    .task-row.review::before { background: var(--danger); }
+    .task-row.completed::before { background: var(--success); }
+
+    .check-wrap {
+      display: flex;
+      align-items: start;
+      justify-content: center;
+      padding-top: 3px;
+    }
+
+    .done-check {
+      width: 22px;
+      height: 22px;
+      accent-color: var(--success);
+      cursor: pointer;
+    }
+
+    .task-main {
+      min-width: 0;
+      display: grid;
+      gap: 12px;
+    }
+
+    .task-top {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .task-name {
+      font-size: 1.04rem;
+      line-height: 1.45;
+      word-break: break-word;
+      font-weight: 600;
+    }
+
+    .task-heading {
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .task-link {
+      color: var(--text);
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(102, 215, 192, 0.35);
+    }
+
+    .task-link:hover {
+      color: #d9fff5;
+      border-bottom-color: rgba(102, 215, 192, 0.7);
+    }
+
+    .task-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .meta-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      padding: 10px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      font-size: 0.9rem;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .meta-check input {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .meta-check.recorded {
+      color: #dffff6;
+      background: rgba(102, 215, 192, 0.14);
+      border-color: rgba(102, 215, 192, 0.32);
+    }
+
+    .schedule-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 0.84rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .pill.completed {
+      color: #d8ffe7;
+      background: rgba(99, 221, 149, 0.12);
+      border-color: rgba(99, 221, 149, 0.22);
+    }
+
+    .pill.review {
+      color: #ffd8d0;
+      background: rgba(255, 134, 116, 0.12);
+      border-color: rgba(255, 134, 116, 0.22);
+    }
+
+    .pill.pending {
+      color: #ffe4bb;
+      background: rgba(241, 182, 96, 0.12);
+      border-color: rgba(241, 182, 96, 0.22);
+    }
+
+    .pill.due {
+      color: #ffe4bb;
+      background: rgba(241, 182, 96, 0.14);
+      border-color: rgba(241, 182, 96, 0.3);
+    }
+
+    .pill.overdue {
+      color: #ffd8d0;
+      background: rgba(255, 134, 116, 0.14);
+      border-color: rgba(255, 134, 116, 0.32);
+    }
+
+    .open-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .open-link:hover {
+      transform: translateY(-1px);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    details {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      background: rgba(0, 0, 0, 0.18);
+      overflow: hidden;
+    }
+
+    summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 12px 14px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+
+    .note-box { padding: 0 14px 14px; }
+
+    .details-stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .note-editor {
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .note-editor:focus-within {
+      border-color: rgba(102, 215, 192, 0.45);
+      box-shadow: 0 0 0 4px rgba(102, 215, 192, 0.12);
+    }
+
+    .note-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .note-tool {
+      padding: 8px 11px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      font-size: 0.88rem;
+      line-height: 1;
+      min-width: 44px;
+    }
+
+    .note-tool:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .note-input {
+      min-height: 170px;
+      padding: 16px;
+      outline: none;
+      line-height: 1.7;
+      color: var(--text);
+      font-size: 0.97rem;
+    }
+
+    .note-input:empty::before {
+      content: attr(data-placeholder);
+      color: var(--muted);
+    }
+
+    .note-input p,
+    .note-input ul,
+    .note-input ol,
+    .note-input pre,
+    .note-input h4 {
+      margin: 0 0 14px;
+    }
+
+    .note-input p:last-child,
+    .note-input ul:last-child,
+    .note-input ol:last-child,
+    .note-input pre:last-child,
+    .note-input h4:last-child {
+      margin-bottom: 0;
+    }
+
+    .note-input h4 {
+      font-size: 0.86rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+
+    .note-input ul,
+    .note-input ol {
+      padding-left: 20px;
+    }
+
+    .note-input li {
+      margin-bottom: 8px;
+    }
+
+    .note-input code {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.92rem;
+      padding: 2px 8px;
+      border-radius: 8px;
+      background: rgba(102, 215, 192, 0.12);
+      color: #dffff6;
+    }
+
+    .note-input pre {
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+
+    .note-input pre code {
+      padding: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+
+    .review-panel {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .review-panel-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .review-actions {
+      display: grid;
+      gap: 12px;
+    }
+
+    .score-scale {
+      display: grid;
+      grid-template-columns: repeat(10, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .score-bubble {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      min-height: 42px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .score-bubble[data-score="1"],
+    .score-bubble[data-score="2"],
+    .score-bubble[data-score="3"] {
+      border-color: rgba(255, 134, 116, 0.38);
+      background: rgba(255, 134, 116, 0.12);
+    }
+
+    .score-bubble[data-score="4"],
+    .score-bubble[data-score="5"],
+    .score-bubble[data-score="6"] {
+      border-color: rgba(241, 182, 96, 0.35);
+      background: rgba(241, 182, 96, 0.1);
+    }
+
+    .score-bubble[data-score="7"],
+    .score-bubble[data-score="8"],
+    .score-bubble[data-score="9"],
+    .score-bubble[data-score="10"] {
+      border-color: rgba(99, 221, 149, 0.35);
+      background: rgba(99, 221, 149, 0.12);
+    }
+
+    .score-bubble:hover,
+    .score-bubble:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(102, 215, 192, 0.7);
+      box-shadow: 0 0 0 4px rgba(102, 215, 192, 0.12);
+      outline: none;
+    }
+
+    .score-bubble.selected {
+      border-color: rgba(102, 215, 192, 0.9);
+      background: linear-gradient(135deg, rgba(102, 215, 192, 0.95), rgba(146, 237, 213, 0.9));
+      color: #062028;
+      box-shadow: 0 0 0 4px rgba(102, 215, 192, 0.18);
+    }
+
+    .score-scale-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .score-scale-meta strong {
+      color: var(--text);
+      font-size: 0.92rem;
+    }
+
+    .review-status {
+      gap: 8px 14px;
+      justify-content: flex-end;
+    }
+
+    .review-guidance {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.6;
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 30px 18px;
+      border-radius: var(--radius-md);
+      border: 1px dashed rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .scroll-top {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      width: 52px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      border: 1px solid rgba(102, 215, 192, 0.26);
+      background: linear-gradient(135deg, var(--accent), #92edd5);
+      color: #072029;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.32);
+      font-size: 1.4rem;
+      font-weight: 800;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+      z-index: 20;
+    }
+
+    .scroll-top.visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 860px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .stats-dock {
+        display: none;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .app {
+        width: min(100% - 16px, 100%);
+      }
+
+      .hero,
+      .toolbar {
+        padding: 16px;
+      }
+
+      .schedule-controls {
+        width: 100%;
+        justify-content: stretch;
+      }
+
+      .schedule-controls > * {
+        width: 100%;
+      }
+
+      .schedule-field {
+        justify-content: space-between;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .task-row {
+        grid-template-columns: 1fr;
+      }
+
+      .check-wrap {
+        justify-content: start;
+      }
+
+      .score-scale {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+
+      .scroll-top {
+        right: 16px;
+        bottom: 16px;
+        width: 48px;
+        height: 48px;
+      }
+    }
+
+    .image-tooltip {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      border-radius: var(--radius-md);
+      box-shadow: 0 16px 36px rgba(0,0,0,0.4);
+      max-width: 98vw;
+      max-height: 98vh;
+      background: rgba(7, 16, 25, 0.95);
+      border: 1px solid rgba(102, 215, 192, 0.3);
+      backdrop-filter: blur(14px);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+    }
+
+    .image-tooltip.visible {
+      opacity: 1;
+    }
+
+    .image-tooltip img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+      border-radius: calc(var(--radius-md) - 4px);
+    }
+
+    .image-hover-link {
+      color: var(--accent);
+      text-decoration: underline dashed rgba(102, 215, 192, 0.5);
+      cursor: pointer;
+      font-weight: 600;
+      padding: 0 2px;
+      border-radius: 4px;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .image-hover-link:hover {
+      background: rgba(102, 215, 192, 0.1);
+      color: #92edd5;
+      text-decoration-style: solid;
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="hero panel" id="heroPanel">
+      <div class="hero-copy">
+        <div class="hero-topline">
+          <p class="eyebrow">Team Hifsa</p>
+          <span class="hero-badge">CCNA Lab Tracker</span>
+        </div>
+        <h1>CCNA lab progress, notes, and review schedule.</h1>
+        <p>
+          Track every lab in this folder, open it quickly, save notes, and keep review timing in one place.
+        </p>
+
+        <div class="stats-shell" id="statsShell">
+        <section class="stats" id="statsBar">
+          <article class="stat">
+            <span>Total Labs</span>
+            <strong id="totalCount">0</strong>
+          </article>
+          <article class="stat">
+            <span>Completed</span>
+            <strong id="completedCount">0</strong>
+          </article>
+          <article class="stat">
+            <span>Due Now</span>
+            <strong id="reviewCount">0</strong>
+          </article>
+          <article class="stat">
+            <span>Overdue</span>
+            <strong id="pendingCount">0</strong>
+          </article>
+        </section>
+        </div>
+      </div>
+
+      <aside class="save-box">
+        <div class="save-box-head">
+          <span class="save-box-kicker">Workspace Status</span>
+          <h2>Project Sync and Save</h2>
+        </div>
+        <div class="status-line" id="folderStatusLine">
+          <span class="status-dot"></span>
+          <span id="folderStatusText">Project folder not linked yet</span>
+        </div>
+        <div class="status-line">
+          <span class="status-dot" style="background:#66d7c0;box-shadow:0 0 0 5px rgba(102, 215, 192, 0.12);"></span>
+          <span id="saveStatusText">Progress will save into <strong>ccna-progress-data.json</strong> after folder link.</span>
+        </div>
+        <div class="button-row">
+          <button class="primary" id="linkFolderButton" type="button">Link Project Folder</button>
+          <button class="secondary" id="reloadJsonButton" type="button">Reload JSON</button>
+        </div>
+        <p class="muted" style="margin:0;">
+          The first time, click <strong>Link Project Folder</strong> once so progress can save into the project JSON file.
+        </p>
+        <p class="muted" style="margin:0;">
+          Packet Tracer launch from the list needs the one-time open helper registration.
+        </p>
+      </aside>
+    </section>
+
+    <section class="stats stats-dock" id="statsDock" aria-hidden="true">
+      <article class="stat">
+        <span>Total Labs</span>
+        <strong id="dockTotalCount">0</strong>
+      </article>
+      <article class="stat">
+        <span>Completed</span>
+        <strong id="dockCompletedCount">0</strong>
+      </article>
+      <article class="stat">
+        <span>Due Now</span>
+        <strong id="dockReviewCount">0</strong>
+      </article>
+      <article class="stat">
+        <span>Overdue</span>
+        <strong id="dockPendingCount">0</strong>
+      </article>
+    </section>
+
+    <section class="toolbar panel" id="dueBoard">
+      <div class="toolbar-head">
+        <div>
+          <h2>Review Queue</h2>
+          <div class="muted" id="dueBoardSummary">No review items due yet.</div>
+        </div>
+      </div>
+      <div class="due-list" id="dueList"></div>
+    </section>
+
+    <section class="toolbar panel">
+      <div class="schedule-toolbar">
+        <div class="schedule-toolbar-copy">
+          <div>
+            <h2>Random Planner</h2>
+            <div class="muted">Spread labs that still need a date across the next few days with randomized times.</div>
+          </div>
+          <p class="schedule-note">Future dates already in place stay untouched. This only fills labs that are not scheduled yet or are already due.</p>
+        </div>
+        <div class="schedule-controls">
+          <label class="schedule-field" for="randomScheduleDays">
+            <span>Spread over</span>
+            <input id="randomScheduleDays" type="number" min="1" max="60" value="10" inputmode="numeric">
+            <span>days</span>
+          </label>
+          <button class="primary" id="randomScheduleButton" type="button">Set Random Schedule</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="toolbar panel">
+      <div class="search">
+        <input id="searchInput" type="search" placeholder="Search lab names, notes, or review status">
+      </div>
+      <div class="toolbar-head">
+        <div class="filter-row" id="filterBar"></div>
+        <div class="results" id="resultsText">0 labs showing</div>
+      </div>
+    </section>
+
+    <section class="list-panel" id="taskList"></section>
+  </main>
+
+  <button class="scroll-top" id="scrollTopButton" type="button" aria-label="Scroll to top" title="Scroll to top">&uarr;</button>
+
+  <input type="file" id="globalImageInput" accept="image/*" style="display: none;" aria-hidden="true">
+  <div id="imageTooltip" class="image-tooltip">
+    <img src="" alt="Hover Preview">
+  </div>
+
+  <script>
+    (() => {
+      const PROJECT_JSON = "ccna-progress-data.json";
+      const HANDLE_DB = "ccna-lab-tracker-db";
+      const HANDLE_STORE = "handles";
+      const HANDLE_KEY = "project-folder";
+      const FILTER_STORAGE_KEY = "ccna-lab-tracker-active-filter";
+      const FILTERS = ["all", "due", "overdue", "pending", "review", "completed", "recorded", "not-recorded"];
+      const SEARCH_DEBOUNCE = 180;
+      const RANDOM_SCHEDULE_DEFAULT_DAYS = 10;
+      const RANDOM_SCHEDULE_MIN_DAYS = 1;
+      const RANDOM_SCHEDULE_MAX_DAYS = 60;
+      const RANDOM_SCHEDULE_START_HOUR = 8;
+      const RANDOM_SCHEDULE_END_HOUR = 21;
+      const RANDOM_SCHEDULE_SLOT_MINUTES = 15;
+
+      const SOURCE_FILES = [
+        "001 - Basic Router Security Configuration 1.pkt",
+        "002 - Basic Router Security Configuration 2.pkt",
+        "003 - Basic Router Security Configuration 3.pkt",
+        "004 - Basic Serial Connection Configuration.pkt",
+        "005 - VLAN Configuration.pkt",
+        "006 - VLAN Configuration Trunk Encapsulation.pkt",
+        "007 - Inter-VLAN Routing (ROAS).pkt",
+        "008 - Inter-VLAN Routing (ROAS) Troubleshooting 1.pkt",
+        "009 - Inter-VLAN Routing (ROAS) Troubleshooting 2.pkt",
+        "010 - Local Username-Password Database.pkt",
+        "011 - Message of the Day and Login Banners.pkt",
+        "012 - Naming VLANs.pkt",
+        "013 - CDP part 1.pkt",
+        "014 - CDP part 2.pkt",
+        "015 - System Configuration Dialog.pkt",
+        "016 - Loopback Interface Configuration.pkt",
+        "017 - Port Security (Part 1).pkt",
+        "018 - Port Security (Part 2).pkt",
+        "019 - Port Security (Part 3).pkt",
+        "020 - Review Configuration Lab 1.pkt",
+        "021 - Review Troubleshooting Lab 1.pkt",
+        "022 - Telnet.pkt",
+        "023 - SSH.pkt",
+        "024 - Static Routing (Part 1).pkt",
+        "025 - Static Routing (Part 2).pkt",
+        "026 - Static Routing (Part 3).pkt",
+        "027 - RIP (Part 1).pkt",
+        "028 - RIP (Part 2).pkt",
+        "029 - Standards ACLs (ACLs Part 1).pkt",
+        "030 - Extended ACLs (ACLs Part 2).pkt",
+        "031 - Named ACLs (ACLs Part 3).pkt",
+        "032 - NTP (Part 1).pkt",
+        "033 - NTP (Part 2).pkt",
+        "034 - LLDP.pkt",
+        "035 - DHCP.pkt",
+        "036 - DNS.pkt",
+        "037 - Static NAT.pkt",
+        "038 - Dynamic NAT.pkt",
+        "039 - PAT.pkt",
+        "040 - Syslog.pkt",
+        "041 - Password Recovery, Configuration Backup, IOS Upgrade.pkt",
+        "042 - IPv6.pkt",
+        "043 - Review Configuration Lab 2.pkt",
+        "044 - Review Troubleshooting Lab 2.pkt",
+        "045 - DTP.pkt",
+        "046 - VTP.pkt",
+        "047 - VTP Troubleshooting.pkt",
+        "048 - STP.pkt",
+        "049 - STP Election.pkt",
+        "050 - EtherChannel.pkt",
+        "051 - EtherChannel Troubleshooting.pkt",
+        "052 - Inter-VLAN Routing (SVI, ROAS).pkt",
+        "053 - Inter-VLAN Routing Troubleshooting.pkt",
+        "054 - OSPF (Part 1, Single Area).pkt",
+        "055 - OSPF (Part 2, Multi-Area).pkt",
+        "056 - OSPF Troubleshooting.pkt",
+        "057 - OSPFv3 for IPv6.pkt",
+        "058 - EIGRP.pkt",
+        "059 - EIGRP Troubleshooting.pkt",
+        "060 - EIGRP for IPv6.pkt",
+        "061 - PPP with PAP and CHAP.pkt",
+        "062 - PPP Troubleshooting.pkt",
+        "063 - MultiLink PPP.zip",
+        "064 - PPPoE.zip",
+        "065 - GRE.pkt",
+        "066 - GRE Troubleshooting.pkt",
+        "067 - BGP.pkt",
+        "068 - BGP Troubleshooting.pkt",
+        "069 - HSRP.pkt",
+        "070 - HSRP Troubleshooting.pkt",
+        "071 - IPv4 and IPv6 ACLs.pkt",
+        "072 - ACL Troubleshooting.pkt",
+        "073 - SPAN.pkt",
+        "074 - IP SLA.zip",
+        "075 - Review Configuration Lab 3.pkt",
+        "076 - Review Troubleshooting Lab 3.pkt"
+      ];
+
+      function note(summary, commands) {
+        return commands ? summary + "\nKey commands: " + commands : summary;
+      }
+
+      function defaultNoteForFile(fileName) {
+        const name = String(fileName || "").toLowerCase();
+
+        if (name.includes("basic router security configuration 1")) {
+          return note("Set the first layer of local router security.", "hostname R1, enable secret <pw>, line console 0, password <pw>, login, service password-encryption.");
+        }
+        if (name.includes("basic router security configuration 2")) {
+          return note("Secure remote access on the router and keep unused access limited.", "line vty 0 4, password <pw>, login, exec-timeout 5 0, transport input telnet ssh.");
+        }
+        if (name.includes("basic router security configuration 3")) {
+          return note("Finish basic hardening and verify the active access settings.", "banner motd #Authorized access only#, show running-config, show ip interface brief, copy running-config startup-config.");
+        }
+        if (name.includes("basic serial connection configuration")) {
+          return note("Check which side is DCE, set clocking only there, then bring the serial link up.", "show controllers serial 0/0/0, interface s0/0/0, ip address <ip> <mask>, clock rate 64000, no shutdown.");
+        }
+        if (name.includes("vlan configuration trunk encapsulation")) {
+          return note("Build the trunk correctly before expecting VLAN traffic to cross switches.", "interface g0/1, switchport trunk encapsulation dot1q, switchport mode trunk, switchport trunk allowed vlan <list>, show interfaces trunk.");
+        }
+        if (name.includes("vlan configuration")) {
+          return note("Create the VLANs, put access ports in the right VLAN, and verify membership.", "vlan 10, name SALES, interface f0/1, switchport mode access, switchport access vlan 10, show vlan brief.");
+        }
+        if (name.includes("inter-vlan routing (roas) troubleshooting 1")) {
+          return note("Check the most common ROAS breakpoints first: VLAN, trunk, subinterface tag, and gateway.", "show vlan brief, show interfaces trunk, show running-config interface g0/0.10, show ip interface brief.");
+        }
+        if (name.includes("inter-vlan routing (roas) troubleshooting 2")) {
+          return note("Verify the router subinterfaces and client gateways before chasing anything more advanced.", "show running-config interface g0/0.10, show interfaces trunk, show ip route, ping <gateway-ip>.");
+        }
+        if (name.includes("inter-vlan routing (roas)")) {
+          return note("Route between VLANs with router subinterfaces and 802.1Q tagging.", "interface g0/0.10, encapsulation dot1Q 10, ip address <ip> <mask>, interface g0/0, no shutdown.");
+        }
+        if (name.includes("local username-password database")) {
+          return note("Use local user accounts instead of only line passwords.", "username admin secret <pw>, line console 0, login local, line vty 0 4, login local.");
+        }
+        if (name.includes("message of the day and login banners")) {
+          return note("Set clear warning banners for anyone reaching the device.", "banner motd #Authorized users only#, banner login #Disconnect if you are not approved#.");
+        }
+        if (name.includes("naming vlans")) {
+          return note("Name VLANs clearly so the switching table stays readable.", "vlan 10, name SALES, vlan 20, name HR, show vlan brief.");
+        }
+        if (name.includes("cdp part 1")) {
+          return note("Use CDP to discover directly connected Cisco devices and ports.", "show cdp neighbors, show cdp interface.");
+        }
+        if (name.includes("cdp part 2")) {
+          return note("Use detailed CDP output to learn IPs, platforms, and remote interface details.", "show cdp neighbors detail, cdp run, no cdp enable.");
+        }
+        if (name.includes("system configuration dialog")) {
+          return note("Know the initial setup dialog flow, then verify what it created from the CLI.", "show running-config, show ip interface brief, copy running-config startup-config.");
+        }
+        if (name.includes("loopback interface configuration")) {
+          return note("Loopbacks stay up and are useful for router ID and stable reachability.", "interface loopback0, ip address <ip> <mask>, show ip interface brief.");
+        }
+        if (name.includes("port security (part 1)")) {
+          return note("Enable basic port security on an access port before tuning limits or actions.", "interface f0/1, switchport mode access, switchport port-security, show port-security interface f0/1.");
+        }
+        if (name.includes("port security (part 2)")) {
+          return note("Add MAC limits and sticky learning so the switch remembers the allowed host.", "switchport port-security maximum 1, switchport port-security mac-address sticky, show port-security address.");
+        }
+        if (name.includes("port security (part 3)")) {
+          return note("Tune violation behavior and verify whether the interface shuts down or only logs.", "switchport port-security violation shutdown, switchport port-security violation restrict, show port-security interface f0/1.");
+        }
+        if (name.includes("review configuration lab 1")) {
+          return note("Use this as a quick checkpoint for the early CCNA build topics covered so far.", "show running-config, show ip interface brief, show vlan brief, show interfaces trunk, ping.");
+        }
+        if (name.includes("review troubleshooting lab 1")) {
+          return note("Troubleshoot from interfaces upward and verify VLANs, trunks, and gateways first.", "show ip interface brief, show running-config, show vlan brief, show interfaces trunk, ping.");
+        }
+        if (name.includes("telnet")) {
+          return note("Allow basic remote CLI access only if the line password and VTY settings are correct.", "line vty 0 4, password <pw>, login, transport input telnet.");
+        }
+        if (name.includes("ssh")) {
+          return note("SSH needs a local user, domain name, and RSA keys before VTY access works.", "ip domain-name lab.local, username admin secret <pw>, crypto key generate rsa, line vty 0 4, login local, transport input ssh.");
+        }
+        if (name.includes("static routing")) {
+          return note("Build static routes carefully and verify the next hop or exit interface is reachable.", "ip route <network> <mask> <next-hop>, ip route 0.0.0.0 0.0.0.0 <next-hop>, show ip route, ping.");
+        }
+        if (name.includes("rip (part")) {
+          return note("Use RIPv2 with the correct networks and turn off auto-summary.", "router rip, version 2, no auto-summary, network <major-network>, show ip protocols.");
+        }
+        if (name.includes("standards acls")) {
+          return note("Standard ACLs match only the source, so place them close to the destination.", "access-list 10 permit 192.168.1.0 0.0.0.255, interface g0/0, ip access-group 10 out, show access-lists.");
+        }
+        if (name.includes("extended acls")) {
+          return note("Extended ACLs can match source, destination, and protocol, so place them near the source.", "access-list 101 permit tcp 192.168.1.0 0.0.0.255 any eq 80, ip access-group 101 in, show access-lists.");
+        }
+        if (name.includes("named acls")) {
+          return note("Named ACLs are easier to read and edit than numbered lists.", "ip access-list extended WEB-FILTER, permit tcp any any eq 80, deny ip any any, interface g0/0, ip access-group WEB-FILTER in.");
+        }
+        if (name.includes("ntp (part 1)")) {
+          return note("Point the device at the correct NTP source and verify time sync.", "ntp server <server-ip>, show clock, show ntp associations.");
+        }
+        if (name.includes("ntp (part 2)")) {
+          return note("Use NTP verification commands and make sure the clock source is trusted.", "ntp server <server-ip>, ntp update-calendar, show ntp associations, show clock detail.");
+        }
+        if (name.includes("lldp")) {
+          return note("LLDP is the vendor-neutral neighbor discovery option.", "lldp run, show lldp neighbors, show lldp neighbors detail.");
+        }
+        if (name.includes("dhcp")) {
+          return note("Create the pool, exclude reserved addresses, and hand out the right gateway.", "ip dhcp excluded-address <start> <end>, ip dhcp pool LAN, network <net> <mask>, default-router <gw>, show ip dhcp binding.");
+        }
+        if (name.includes("dns")) {
+          return note("Make sure hosts point to the correct DNS server and that the needed records exist.", "ip name-server <dns-ip>, ping <hostname>, browser test from the client.");
+        }
+        if (name.includes("static nat")) {
+          return note("Use a fixed inside-to-outside mapping for a server that must always be reachable.", "ip nat inside source static <inside-local> <inside-global>, ip nat inside, ip nat outside, show ip nat translations.");
+        }
+        if (name.includes("dynamic nat")) {
+          return note("Dynamic NAT needs an ACL, a pool, and correct inside/outside interface roles.", "ip nat pool PUBLIC <start> <end> netmask <mask>, access-list 1 permit <net> <wildcard>, ip nat inside source list 1 pool PUBLIC.");
+        }
+        if (name.includes("pat")) {
+          return note("PAT overload lets many inside hosts share one outside address.", "access-list 1 permit <net> <wildcard>, ip nat inside source list 1 interface g0/0 overload, show ip nat translations.");
+        }
+        if (name.includes("syslog")) {
+          return note("Send logs to the syslog server and timestamp them so events make sense later.", "logging host <syslog-ip>, service timestamps log datetime msec, show logging.");
+        }
+        if (name.includes("password recovery, configuration backup, ios upgrade")) {
+          return note("Focus on safe recovery, backup, and IOS file handling without losing the working config.", "show version, show flash, copy running-config startup-config, copy startup-config tftp, boot system flash:<image>.");
+        }
+        if (name.includes("ipv4 and ipv6 acls")) {
+          return note("Keep IPv4 and IPv6 ACL logic separate and apply each in the right direction.", "access-list 101 permit ip <src> <wildcard> any, ipv6 access-list V6-FILTER, permit tcp any any eq 80, ipv6 traffic-filter V6-FILTER in.");
+        }
+        if (name.includes("042 - ipv6")) {
+          return note("Enable IPv6 routing, address the interfaces, and verify the route table.", "ipv6 unicast-routing, ipv6 address 2001:db8:1::1/64, show ipv6 interface brief, show ipv6 route.");
+        }
+        if (name.includes("dtp")) {
+          return note("DTP negotiates trunks only when both sides support compatible switchport modes.", "switchport mode dynamic desirable, switchport mode dynamic auto, switchport nonegotiate, show interfaces trunk.");
+        }
+        if (name.includes("vtp troubleshooting")) {
+          return note("VTP issues are usually domain, password, revision, or trunk problems.", "show vtp status, show interfaces trunk, show vlan brief.");
+        }
+        if (name.includes("vtp")) {
+          return note("Set the VTP domain, mode, and password before expecting VLANs to propagate.", "vtp domain <name>, vtp mode server, vtp password <pw>, show vtp status.");
+        }
+        if (name.includes("stp election")) {
+          return note("Root bridge election is driven by priority first and MAC address second.", "show spanning-tree, spanning-tree vlan 1 root primary, spanning-tree vlan 1 priority 4096.");
+        }
+        if (name.includes("stp")) {
+          return note("Verify the root bridge and port roles before changing STP behavior.", "show spanning-tree, spanning-tree vlan 1 priority 4096.");
+        }
+        if (name.includes("etherchannel troubleshooting")) {
+          return note("EtherChannel fails when member interfaces do not match on mode, speed, duplex, or trunking.", "show etherchannel summary, show interfaces trunk, show running-config interface g0/1.");
+        }
+        if (name.includes("etherchannel")) {
+          return note("Bundle matching links into one logical port-channel and verify the protocol state.", "interface range g0/1-2, channel-group 1 mode active, interface port-channel 1, show etherchannel summary.");
+        }
+        if (name.includes("inter-vlan routing troubleshooting")) {
+          return note("Check VLANs, trunks, SVIs or router subinterfaces, and the client default gateway in that order.", "show vlan brief, show interfaces trunk, show ip interface brief, show ip route.");
+        }
+        if (name.includes("inter-vlan routing (svi, roas)")) {
+          return note("Know when to use an SVI on a multilayer switch versus ROAS on a router.", "interface vlan 10, ip address <ip> <mask>, ip routing, show ip interface brief.");
+        }
+        if (name.includes("ospfv3 for ipv6")) {
+          return note("OSPFv3 runs on IPv6-enabled interfaces after the process is created and enabled.", "ipv6 unicast-routing, ipv6 router ospf 1, router-id 1.1.1.1, interface g0/0, ipv6 ospf 1 area 0.");
+        }
+        if (name.includes("ospf troubleshooting")) {
+          return note("Most OSPF issues come from area mismatch, wrong network statements, or passive interfaces.", "show ip ospf neighbor, show ip ospf interface brief, show running-config | section ospf.");
+        }
+        if (name.includes("ospf (part 2, multi-area)")) {
+          return note("Place interfaces in the right OSPF areas and verify the ABR forms neighbors correctly.", "router ospf 1, network <net> <wildcard> area <id>, show ip ospf interface brief, show ip route ospf.");
+        }
+        if (name.includes("ospf (part 1, single area)")) {
+          return note("Start with a clean single-area OSPF build and verify adjacency and routes.", "router ospf 1, network <net> <wildcard> area 0, show ip ospf neighbor, show ip route ospf.");
+        }
+        if (name.includes("eigrp troubleshooting")) {
+          return note("Check the AS number, network statements, and passive interfaces first.", "show ip eigrp neighbors, show ip protocols, show running-config | section eigrp.");
+        }
+        if (name.includes("eigrp for ipv6")) {
+          return note("EIGRP for IPv6 needs the process up and enabled per interface.", "ipv6 unicast-routing, ipv6 router eigrp 1, no shutdown, interface g0/0, ipv6 eigrp 1.");
+        }
+        if (name.includes("eigrp.pkt")) {
+          return note("Use the same EIGRP AS on all routers and advertise the right networks.", "router eigrp 1, network <net>, no auto-summary, show ip eigrp neighbors, show ip route eigrp.");
+        }
+        if (name.includes("ppp troubleshooting")) {
+          return note("PPP issues usually come from encapsulation mismatch, bad usernames, or clocking problems.", "show interfaces serial 0/0/0, show running-config interface s0/0/0, debug ppp negotiation.");
+        }
+        if (name.includes("ppp with pap and chap")) {
+          return note("PPP authentication only works when usernames, passwords, and hostnames line up correctly.", "encapsulation ppp, ppp authentication pap chap, username <peer> password <pw>, show interfaces serial 0/0/0.");
+        }
+        if (name.includes("multilink ppp")) {
+          return note("Bundle multiple serial links into one logical multilink interface.", "interface multilink 1, ppp multilink, interface s0/0/0, ppp multilink group 1, show ppp multilink.");
+        }
+        if (name.includes("pppoe")) {
+          return note("PPPoE ties a virtual template to the access interface and authenticates the client session.", "bba-group pppoe global, virtual-template 1, pppoe enable group global, show pppoe session.");
+        }
+        if (name.includes("gre troubleshooting")) {
+          return note("Check basic IP reachability under the tunnel before troubleshooting GRE itself.", "show interface tunnel0, show ip route, ping <tunnel-destination>, show running-config interface tunnel0.");
+        }
+        if (name.includes("065 - gre")) {
+          return note("Build the GRE tunnel first, then route the remote networks through it.", "interface tunnel0, ip address <ip> <mask>, tunnel source <src>, tunnel destination <dst>, show interface tunnel0.");
+        }
+        if (name.includes("bgp troubleshooting")) {
+          return note("BGP neighbors stay down when reachability, remote-as, or update-source is wrong.", "show ip bgp summary, show ip route, show running-config | section bgp.");
+        }
+        if (name.includes("bgp.pkt")) {
+          return note("Bring up the BGP peering first, then advertise the expected networks.", "router bgp <asn>, neighbor <peer-ip> remote-as <peer-as>, network <prefix> mask <mask>, show ip bgp summary.");
+        }
+        if (name.includes("hsrp troubleshooting")) {
+          return note("Verify the HSRP group, virtual IP, priorities, and interface status on both routers.", "show standby brief, show running-config interface g0/0.");
+        }
+        if (name.includes("hsrp.pkt")) {
+          return note("Use HSRP for gateway redundancy and make the preferred router obvious.", "standby 1 ip <virtual-ip>, standby 1 priority 110, standby 1 preempt, show standby brief.");
+        }
+        if (name.includes("acl troubleshooting")) {
+          return note("ACL problems are usually the wrong interface, wrong direction, or the implicit deny at the end.", "show access-lists, show ip interface, show running-config interface <int>.");
+        }
+        if (name.includes("span")) {
+          return note("Mirror the right source traffic to the analyzer port and verify the session state.", "monitor session 1 source interface f0/1, monitor session 1 destination interface f0/24, show monitor session 1.");
+        }
+        if (name.includes("ip sla")) {
+          return note("Track reachability automatically and tie it to failover or route decisions.", "ip sla 1, icmp-echo <target-ip>, frequency 5, ip sla schedule 1 life forever start-time now, track 1 ip sla 1 reachability.");
+        }
+        if (name.includes("review configuration lab 2")) {
+          return note("Use this as a midpoint check for switching, routing, and service configuration accuracy.", "show running-config, show ip interface brief, show ip route, show vlan brief, ping.");
+        }
+        if (name.includes("review troubleshooting lab 2")) {
+          return note("Check interfaces, routes, and service settings before changing anything large.", "show ip interface brief, show ip route, show vlan brief, show access-lists, ping.");
+        }
+        if (name.includes("review configuration lab 3")) {
+          return note("Treat this like a final build review and verify every major service before saving.", "show running-config, show ip route, show standby brief, show access-lists, ping, copy running-config startup-config.");
+        }
+        if (name.includes("review troubleshooting lab 3")) {
+          return note("Use end-to-end verification and isolate the failure domain before editing configs.", "show ip interface brief, show ip route, show standby brief, show access-lists, traceroute, ping.");
+        }
+
+        return "";
+      }
+
+      const NOTE_ALLOWED_TAGS = new Set(["p", "br", "strong", "em", "ul", "ol", "li", "code", "pre", "h4", "a"]);
+
+      function normalizeNoteMarkup(value) {
+        const raw = String(value || "").trim();
+        if (!raw) return "";
+        if (isRichNoteHtml(raw)) {
+          return sanitizeNoteHtml(raw);
+        }
+        return convertPlainNoteToHtml(raw);
+      }
+
+      function isRichNoteHtml(value) {
+        return /<(p|br|strong|b|em|i|ul|ol|li|code|pre|div|h1|h2|h3|h4|a)\b/i.test(value);
+      }
+
+      function convertPlainNoteToHtml(text) {
+        const normalized = String(text || "").replace(/\r\n?/g, "\n").trim();
+        if (!normalized) return "";
+
+        const commandTagged = normalized.replace(/\nKey commands:\s*/gi, "\n\n[[KEY_COMMANDS]] ");
+        const blocks = commandTagged.split(/\n{2,}/).map((block) => block.trim()).filter(Boolean);
+
+        return blocks.map((block) => {
+          if (block.startsWith("[[KEY_COMMANDS]] ")) {
+            return buildCommandListHtml(block.replace("[[KEY_COMMANDS]] ", ""));
+          }
+          return "<p>" + block.split("\n").map((line) => escapeHtml(line.trim())).join("<br>") + "</p>";
+        }).join("");
+      }
+
+      function buildCommandListHtml(text) {
+        const commands = splitCommandText(text);
+        if (!commands.length) {
+          return "<h4>Key Commands</h4><ul><li><code>show running-config</code></li></ul>";
+        }
+        return [
+          "<h4>Key Commands</h4>",
+          "<ul>",
+          commands.map((command) => "<li><code>" + escapeHtml(command) + "</code></li>").join(""),
+          "</ul>"
+        ].join("");
+      }
+
+      function splitCommandText(text) {
+        return String(text || "")
+          .replace(/\s+/g, " ")
+          .split(/\s*,\s*/)
+          .map((item) => item.trim().replace(/\.$/, ""))
+          .filter(Boolean);
+      }
+
+      function sanitizeNoteHtml(html) {
+        const template = document.createElement("template");
+        template.innerHTML = String(html || "");
+        return Array.from(template.content.childNodes).map((node) => sanitizeNoteNode(node)).join("").trim();
+      }
+
+      function sanitizeNoteNode(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          return escapeHtml(node.textContent || "");
+        }
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+          return "";
+        }
+
+        const tag = node.tagName.toLowerCase();
+        if (tag === "b") return "<strong>" + sanitizeChildren(node) + "</strong>";
+        if (tag === "i") return "<em>" + sanitizeChildren(node) + "</em>";
+        if (tag === "div") return "<p>" + sanitizeChildren(node) + "</p>";
+        if (tag === "span") return sanitizeChildren(node);
+        if (tag === "h1" || tag === "h2" || tag === "h3") return "<h4>" + sanitizeChildren(node) + "</h4>";
+        if (!NOTE_ALLOWED_TAGS.has(tag)) return sanitizeChildren(node);
+        if (tag === "br") return "<br>";
+
+        let attrs = "";
+        if (tag === "a" && node.hasAttribute("href")) {
+          const href = node.getAttribute("href");
+          if (href.startsWith("attachments/") || href.startsWith("http") || href.startsWith("data:")) {
+            attrs = ' href="' + escapeHtml(href) + '" class="image-hover-link"';
+          }
+        }
+        return "<" + tag + attrs + ">" + sanitizeChildren(node) + "</" + tag + ">";
+      }
+
+      function sanitizeChildren(node) {
+        return Array.from(node.childNodes).map((child) => sanitizeNoteNode(child)).join("");
+      }
+
+      function extractNoteText(value) {
+        const template = document.createElement("template");
+        template.innerHTML = normalizeNoteMarkup(value);
+        return (template.content.textContent || "").replace(/\s+/g, " ").trim();
+      }
+
+      const elements = {
+        hero: document.getElementById("heroPanel"),
+        statsShell: document.getElementById("statsShell"),
+        statsBar: document.getElementById("statsBar"),
+        statsDock: document.getElementById("statsDock"),
+        totalCount: document.getElementById("totalCount"),
+        dockTotalCount: document.getElementById("dockTotalCount"),
+        completedCount: document.getElementById("completedCount"),
+        dockCompletedCount: document.getElementById("dockCompletedCount"),
+        reviewCount: document.getElementById("reviewCount"),
+        dockReviewCount: document.getElementById("dockReviewCount"),
+        pendingCount: document.getElementById("pendingCount"),
+        dockPendingCount: document.getElementById("dockPendingCount"),
+        searchInput: document.getElementById("searchInput"),
+        filterBar: document.getElementById("filterBar"),
+        resultsText: document.getElementById("resultsText"),
+        dueBoardSummary: document.getElementById("dueBoardSummary"),
+        dueList: document.getElementById("dueList"),
+        randomScheduleDays: document.getElementById("randomScheduleDays"),
+        randomScheduleButton: document.getElementById("randomScheduleButton"),
+        taskList: document.getElementById("taskList"),
+        linkFolderButton: document.getElementById("linkFolderButton"),
+        reloadJsonButton: document.getElementById("reloadJsonButton"),
+        folderStatusLine: document.getElementById("folderStatusLine"),
+        folderStatusText: document.getElementById("folderStatusText"),
+        saveStatusText: document.getElementById("saveStatusText"),
+        scrollTopButton: document.getElementById("scrollTopButton"),
+        globalImageInput: document.getElementById("globalImageInput"),
+        imageTooltip: document.getElementById("imageTooltip")
+      };
+
+      const defaultTasks = SOURCE_FILES.map((fileName, index) => ({
+        id: makeId(fileName),
+        order: index + 1,
+        fileName,
+        status: "pending",
+        notes: normalizeNoteMarkup(defaultNoteForFile(fileName)),
+        updatedAt: null,
+        reviewIntervalDays: 3,
+        lastReviewedAt: null,
+        nextReviewAt: null,
+        lastScore: null,
+        screenRecorded: false
+      }));
+
+      const state = {
+        tasks: defaultTasks.map((task) => ({ ...task })),
+        search: "",
+        filter: "all",
+        folderHandle: null,
+        fileHandle: null,
+        saveTimer: null,
+        searchTimer: null,
+        connectedFolderName: "",
+        expandedTaskIds: new Set(),
+        stickyStatsFrame: 0,
+        pinnedVisibleTaskId: null
+      };
+
+      init();
+
+      async function init() {
+        state.filter = loadSavedFilter();
+        renderFilterBar();
+        bindEvents();
+        updateScrollTopButtonVisibility();
+        queueStickyStatsUpdate();
+        render();
+        await restoreLinkedFolder();
+      }
+
+      function bindEvents() {
+        elements.searchInput.addEventListener("input", () => {
+          window.clearTimeout(state.searchTimer);
+          state.searchTimer = window.setTimeout(() => {
+            state.search = elements.searchInput.value.trim().toLowerCase();
+            render();
+          }, SEARCH_DEBOUNCE);
+        });
+
+        elements.filterBar.addEventListener("click", (event) => {
+          const button = event.target.closest("[data-filter]");
+          if (!button) return;
+          const nextFilter = button.getAttribute("data-filter");
+          state.filter = nextFilter;
+          saveFilterPreference(state.filter);
+          renderFilterBar();
+          render();
+        });
+
+        elements.taskList.addEventListener("change", (event) => {
+          const row = event.target.closest("[data-task-id]");
+          if (!row) return;
+          const taskId = row.getAttribute("data-task-id");
+          const nowIso = new Date().toISOString();
+
+          if (event.target.matches("[data-role='done-check']")) {
+            updateTask(taskId, (task) => {
+              if (event.target.checked) {
+                const interval = Number(task.reviewIntervalDays) || 3;
+                task.status = "completed";
+                task.reviewIntervalDays = interval;
+                task.lastReviewedAt = nowIso;
+                task.nextReviewAt = addDays(nowIso, interval);
+              } else {
+                task.status = "pending";
+                task.lastReviewedAt = null;
+                task.nextReviewAt = null;
+              }
+              task.updatedAt = nowIso;
+            });
+            queueSave();
+            announceReviewChange(taskId, event.target.checked ? "Lab marked completed and scheduled for review." : "Lab moved back to pending.");
+            render({ preserveTaskId: taskId });
+          }
+
+          if (event.target.matches("[data-role='screen-recorded-check']")) {
+            updateTask(taskId, (task) => {
+              task.screenRecorded = event.target.checked;
+              task.updatedAt = nowIso;
+            });
+            queueSave();
+            updateSaveStatus(
+              event.target.checked
+                ? "Screen recording marked for this lab."
+                : "Screen recording mark removed for this lab."
+            );
+            render({ preserveTaskId: taskId });
+          }
+        });
+
+        elements.taskList.addEventListener("input", (event) => {
+          const row = event.target.closest("[data-task-id]");
+          if (!row) return;
+          const taskId = row.getAttribute("data-task-id");
+
+          if (event.target.matches("[data-role='note-input']")) {
+            syncNoteEditor(taskId, event.target, false);
+          }
+        });
+
+        elements.taskList.addEventListener("focusout", (event) => {
+          const row = event.target.closest("[data-task-id]");
+          if (!row) return;
+          if (event.target.matches("[data-role='note-input']")) {
+            syncNoteEditor(row.getAttribute("data-task-id"), event.target, true);
+          }
+        }, true);
+
+        elements.taskList.addEventListener("mousedown", (event) => {
+          const button = event.target.closest("[data-note-command]");
+          if (!button) return;
+          event.preventDefault();
+          const editorWrap = button.closest("[data-note-editor]");
+          const editor = editorWrap ? editorWrap.querySelector("[data-role='note-input']") : null;
+          const row = button.closest("[data-task-id]");
+          if (!editor || !row) return;
+
+          const command = button.getAttribute("data-note-command");
+          if (command === "insertImage") {
+            editor.focus();
+            const selection = window.getSelection();
+            if (!selection.rangeCount) return;
+            state._imageStashedRange = selection.getRangeAt(0);
+            state._imageTargetEditor = editor;
+            state._imageTargetTaskId = row.getAttribute("data-task-id");
+            elements.globalImageInput.click();
+            return;
+          }
+
+          applyNoteCommand(editor, command, button.getAttribute("data-note-value") || "");
+          syncNoteEditor(row.getAttribute("data-task-id"), editor, true);
+        });
+
+        // ------------------ IMAGE PASTE & DROP HANDLERS ------------------
+        elements.taskList.addEventListener("paste", async (event) => {
+          const editor = event.target.closest("[data-role='note-input']");
+          if (!editor) return;
+
+          const items = (event.clipboardData || event.originalEvent?.clipboardData)?.items;
+          if (!items) return;
+
+          let imageFile = null;
+          for (const item of items) {
+            if (item.type.indexOf("image") === 0) {
+              imageFile = item.getAsFile();
+              break;
+            }
+          }
+
+          if (imageFile) {
+            event.preventDefault();
+            const url = await saveImageToFolder(imageFile);
+            if (url) {
+              document.execCommand("insertHTML", false, ' <a href="' + escapeHtml(url) + '" class="image-hover-link" data-image-hover="true">📷 Image</a> ');
+              syncNoteEditor(editor.closest("[data-task-id]").getAttribute("data-task-id"), editor, true);
+            }
+          }
+        });
+
+        elements.taskList.addEventListener("dragover", (event) => {
+          if (event.target.closest("[data-role='note-input']")) {
+            event.preventDefault(); // allow dropping
+          }
+        });
+
+        elements.taskList.addEventListener("drop", async (event) => {
+          const editor = event.target.closest("[data-role='note-input']");
+          if (!editor) return;
+
+          const items = event.dataTransfer?.items;
+          if (!items) return;
+
+          let imageFile = null;
+          for (const item of items) {
+            if (item.type.indexOf("image") === 0) {
+              imageFile = item.getAsFile();
+              break;
+            }
+          }
+
+          if (imageFile) {
+            event.preventDefault(); // Stop normal file rendering
+            editor.focus();
+            const url = await saveImageToFolder(imageFile);
+            if (url) {
+              document.execCommand("insertHTML", false, ' <a href="' + escapeHtml(url) + '" class="image-hover-link" data-image-hover="true">📷 Image</a> ');
+              syncNoteEditor(editor.closest("[data-task-id]").getAttribute("data-task-id"), editor, true);
+            }
+          }
+        });
+        // ----------------------------------------------------------------
+
+        elements.taskList.addEventListener("toggle", (event) => {
+          const details = event.target.closest("details[data-task-details]");
+          if (!details) return;
+          const taskId = details.getAttribute("data-task-details");
+          if (!taskId) return;
+          if (details.open) {
+            state.expandedTaskIds.add(taskId);
+          } else {
+            state.expandedTaskIds.delete(taskId);
+          }
+        }, true);
+
+        elements.taskList.addEventListener("click", (event) => {
+          const row = event.target.closest("[data-task-id]");
+          if (!row) return;
+          const taskId = row.getAttribute("data-task-id");
+
+          if (event.target.closest("[data-role='review-button']")) {
+            updateTask(taskId, (item) => {
+              const nowIso = new Date().toISOString();
+              if (item.status === "review") {
+                item.status = "pending";
+                item.lastReviewedAt = null;
+                item.nextReviewAt = null;
+              } else {
+                item.status = "review";
+                item.lastReviewedAt = nowIso;
+                item.nextReviewAt = nowIso;
+              }
+              item.updatedAt = nowIso;
+            });
+            queueSave();
+            announceReviewChange(taskId, "Review state updated.");
+            render({ preserveTaskId: taskId });
+          }
+
+          const ratingButton = event.target.closest("[data-role^='rate-']");
+          if (ratingButton) {
+            const rating = ratingButton.getAttribute("data-role").replace("rate-", "");
+            applyReviewRating(taskId, rating);
+          }
+        });
+
+        elements.randomScheduleButton.addEventListener("click", applyRandomSchedule);
+        elements.linkFolderButton.addEventListener("click", linkProjectFolder);
+        elements.reloadJsonButton.addEventListener("click", reloadFromJson);
+        elements.scrollTopButton.addEventListener("click", () => {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+        window.addEventListener("scroll", handleWindowScroll, { passive: true });
+        window.addEventListener("resize", queueStickyStatsUpdate, { passive: true });
+
+        // ------------- TOOLTIP AND GLOBAL IMAGE INPUT BINDINGS -----------
+        elements.globalImageInput.addEventListener("change", async (event) => {
+          const file = event.target.files[0];
+          if (!file) return;
+          event.target.value = ""; // reset for future clicks
+
+          if (state._imageTargetEditor && state._imageStashedRange && state._imageTargetTaskId) {
+            const url = await saveImageToFolder(file);
+            if (url) {
+              state._imageTargetEditor.focus();
+              const selection = window.getSelection();
+              selection.removeAllRanges();
+              selection.addRange(state._imageStashedRange);
+              document.execCommand("insertHTML", false, ' <a href="' + escapeHtml(url) + '" class="image-hover-link" data-image-hover="true">📷 Image</a> ');
+              syncNoteEditor(state._imageTargetTaskId, state._imageTargetEditor, true);
+            }
+          }
+          state._imageStashedRange = null;
+          state._imageTargetEditor = null;
+          state._imageTargetTaskId = null;
+        });
+
+        document.addEventListener("mouseover", (event) => {
+          if (event.target.matches(".image-hover-link")) {
+            const href = event.target.getAttribute("href");
+            if (href) {
+              elements.imageTooltip.querySelector("img").src = href;
+              elements.imageTooltip.classList.add("visible");
+            }
+          }
+        });
+
+        document.addEventListener("mouseout", (event) => {
+          if (event.target.matches(".image-hover-link")) {
+            elements.imageTooltip.classList.remove("visible");
+          }
+        });
+        // -----------------------------------------------------------------
+      }
+
+      async function saveImageToFolder(file) {
+        if (!state.folderHandle) {
+          window.alert("Please Link Project Folder first so the image can be saved locally.");
+          return null;
+        }
+        try {
+          // ensure 'attachments' directory exists
+          const attachmentsDir = await state.folderHandle.getDirectoryHandle("attachments", { create: true });
+          const extMatch = file.name.match(/\.([a-zA-Z0-9]+)$/);
+          const ext = (extMatch && extMatch[1]) || "png";
+          const filename = "img-" + Date.now() + "-" + Math.floor(Math.random() * 1000) + "." + ext;
+          
+          const fileHandle = await attachmentsDir.getFileHandle(filename, { create: true });
+          const writable = await fileHandle.createWritable();
+          // Write array buffer
+          const buffer = await file.arrayBuffer();
+          await writable.write(buffer);
+          await writable.close();
+          
+          return "attachments/" + filename;
+        } catch (err) {
+          console.error("Failed to save image attachment:", err);
+          window.alert("Failed to save image attachment. Ensure folder permissions are given.");
+          return null;
+        }
+      }
+
+      function renderFilterBar() {
+        elements.filterBar.innerHTML = FILTERS.map((filter) => {
+          const active = state.filter === filter ? " active" : "";
+          const label = labelForFilter(filter) + (state.filter === filter && filter !== "all" ? " ×" : "");
+          return "<button type=\"button\" class=\"filter-chip" + active + "\" data-filter=\"" + escapeHtml(filter) + "\" aria-pressed=\"" + (state.filter === filter ? "true" : "false") + "\">" + escapeHtml(label) + "</button>";
+        }).join("");
+      }
+
+      function loadSavedFilter() {
+        try {
+          const saved = window.localStorage.getItem(FILTER_STORAGE_KEY);
+          return FILTERS.includes(saved) ? saved : "all";
+        } catch (error) {
+          return "all";
+        }
+      }
+
+      function saveFilterPreference(filter) {
+        try {
+          window.localStorage.setItem(FILTER_STORAGE_KEY, FILTERS.includes(filter) ? filter : "all");
+        } catch (error) {
+          // Ignore storage failures and keep the page usable.
+        }
+      }
+
+      function render(options = {}) {
+        const preserveTaskId = options.preserveTaskId || null;
+        const previousScrollY = window.scrollY;
+        const previousOffset = preserveTaskId ? getTaskViewportTop(preserveTaskId) : null;
+        renderFilterBar();
+        const filtered = getVisibleTasks();
+        const reviewSummary = summarizeReviewQueue();
+        const completed = state.tasks.filter((task) => task.status === "completed").length;
+
+        elements.totalCount.textContent = String(state.tasks.length);
+        elements.dockTotalCount.textContent = String(state.tasks.length);
+        elements.completedCount.textContent = String(completed);
+        elements.dockCompletedCount.textContent = String(completed);
+        elements.reviewCount.textContent = String(reviewSummary.due);
+        elements.dockReviewCount.textContent = String(reviewSummary.due);
+        elements.pendingCount.textContent = String(reviewSummary.overdue);
+        elements.dockPendingCount.textContent = String(reviewSummary.overdue);
+        elements.resultsText.textContent = filtered.length + (filtered.length === 1 ? " lab showing" : " labs showing");
+
+        renderDueBoard(reviewSummary.items);
+
+        if (!filtered.length) {
+          elements.taskList.innerHTML = "<div class=\"empty\">No lab matches this filter or search.</div>";
+          queueStickyStatsUpdate();
+          return;
+        }
+
+        elements.taskList.innerHTML = filtered.map(renderTaskRow).join("");
+        restoreTaskViewport(preserveTaskId, previousOffset, previousScrollY);
+        queueStickyStatsUpdate();
+      }
+
+      function renderTaskRow(task) {
+        const notePreview = extractNoteText(task.notes) ? "Edit formatted note" : "Add formatted note";
+        const fileHref = buildFileHref(task.fileName);
+        const reviewState = getReviewState(task);
+        const currentInterval = Number(task.reviewIntervalDays) || 3;
+        return [
+          "<article class=\"task-row " + escapeHtml(task.status) + "\" data-task-id=\"" + escapeHtml(task.id) + "\">",
+          "  <div class=\"check-wrap\">",
+          "    <input class=\"done-check\" data-role=\"done-check\" type=\"checkbox\"" + (task.status === "completed" ? " checked" : "") + " aria-label=\"Mark completed\">",
+          "  </div>",
+          "  <div class=\"task-main\">",
+          "    <div class=\"task-top\">",
+          "      <div class=\"task-heading\">",
+          "        <div class=\"task-name\"><a class=\"task-link\" href=\"" + escapeHtml(fileHref) + "\">" + escapeHtml(task.fileName) + "</a></div>",
+          "        <label class=\"meta-check" + (task.screenRecorded ? " recorded" : "") + "\">",
+          "          <input type=\"checkbox\" data-role=\"screen-recorded-check\"" + (task.screenRecorded ? " checked" : "") + " aria-label=\"Mark screen recorded\">",
+          "          <span>Screen Recorded</span>",
+          "        </label>",
+          "      </div>",
+          "      <div class=\"task-meta\">",
+          "        <a class=\"open-link\" href=\"" + escapeHtml(fileHref) + "\">Open File</a>",
+          "        <span class=\"pill " + escapeHtml(task.status) + "\">" + escapeHtml(labelForStatus(task.status)) + "</span>",
+          "        <span class=\"pill " + escapeHtml(reviewState.variant) + "\">" + escapeHtml(reviewState.label) + "</span>",
+          "        <button type=\"button\" class=\"ghost" + (task.status === "review" ? " active" : "") + "\" data-role=\"review-button\">Review</button>",
+          "      </div>",
+          "    </div>",
+          "    <div class=\"schedule-summary\">",
+          "      <span>Next review: " + escapeHtml(reviewState.dateLabel) + "</span>",
+          "      <span>" + escapeHtml(reviewState.message) + "</span>",
+          "    </div>",
+          "    <details data-task-details=\"" + escapeHtml(task.id) + "\"" + (state.expandedTaskIds.has(task.id) ? " open" : "") + ">",
+          "      <summary><span>" + escapeHtml(notePreview) + "</span><span>" + escapeHtml(task.updatedAt ? formatDate(task.updatedAt) : "No note yet") + "</span></summary>",
+          "      <div class=\"note-box\">",
+          "        <div class=\"details-stack\">",
+          "          <div class=\"review-panel\">",
+          "            <div class=\"review-panel-head\">",
+          "              <div>",
+          "                <strong>Review Scheduling</strong>",
+          "                <div class=\"muted\">" + escapeHtml(reviewState.longMessage) + "</div>",
+          "              </div>",
+          "              <div class=\"schedule-summary review-status\">",
+          "                <span>Current spacing: " + escapeHtml(describeInterval(currentInterval)) + "</span>",
+          "                <span>Next due: " + escapeHtml(reviewState.dateLabel) + "</span>",
+          "              </div>",
+          "            </div>",
+          "            <div class=\"review-guidance\">Click a bubble to schedule the next review in exactly that many days from now.</div>",
+          "            <div class=\"review-actions\">",
+          "              <div class=\"score-scale\">",
+                           renderReviewScoreBubble(task, 1),
+                           renderReviewScoreBubble(task, 2),
+                           renderReviewScoreBubble(task, 3),
+                           renderReviewScoreBubble(task, 4),
+                           renderReviewScoreBubble(task, 5),
+                           renderReviewScoreBubble(task, 6),
+                           renderReviewScoreBubble(task, 7),
+                           renderReviewScoreBubble(task, 8),
+                           renderReviewScoreBubble(task, 9),
+                           renderReviewScoreBubble(task, 10),
+          "              </div>",
+          "              <div class=\"score-scale-meta\">",
+          "                <span><strong>1</strong> = 1 day</span>",
+          "                <span><strong>5</strong> = 5 days</span>",
+          "                <span><strong>10</strong> = 10 days</span>",
+          "              </div>",
+          "            </div>",
+          "          </div>",
+          "          <div class=\"note-editor\" data-note-editor>",
+          "            <div class=\"note-toolbar\" role=\"toolbar\" aria-label=\"Note formatting\">",
+          "              <button type=\"button\" class=\"note-tool\" data-note-command=\"formatBlock\" data-note-value=\"p\" aria-label=\"Paragraph\">Text</button>",
+          "              <button type=\"button\" class=\"note-tool\" data-note-command=\"bold\" aria-label=\"Bold\"><strong>B</strong></button>",
+          "              <button type=\"button\" class=\"note-tool\" data-note-command=\"insertUnorderedList\" aria-label=\"Bulleted list\">List</button>",
+          "              <button type=\"button\" class=\"note-tool\" data-note-command=\"insertOrderedList\" aria-label=\"Numbered list\">1.2</button>",
+          "              <button type=\"button\" class=\"note-tool\" data-note-command=\"codeBlock\" aria-label=\"Code block\">{ }</button>",
+          "              <button type=\"button\" class=\"note-tool\" data-note-command=\"insertCommands\" aria-label=\"Insert key commands list\">Cmd</button>",
+          "              <button type=\"button\" class=\"note-tool\" data-note-command=\"insertImage\" aria-label=\"Insert image\">Img</button>",
+          "            </div>",
+          "            <div class=\"note-input\" data-role=\"note-input\" contenteditable=\"true\" spellcheck=\"true\" data-placeholder=\"Write commands, reminders, or anything you want to remember for this lab.\">" + sanitizeNoteHtml(task.notes || "") + "</div>",
+          "          </div>",
+          "        </div>",
+          "      </div>",
+          "    </details>",
+          "  </div>",
+          "</article>"
+        ].join("");
+      }
+
+      function applyRandomSchedule() {
+        const dayCount = clampWholeNumber(elements.randomScheduleDays.value, RANDOM_SCHEDULE_MIN_DAYS, RANDOM_SCHEDULE_MAX_DAYS, RANDOM_SCHEDULE_DEFAULT_DAYS);
+        elements.randomScheduleDays.value = String(dayCount);
+
+        const now = new Date();
+        const candidates = state.tasks
+          .filter((task) => shouldAutoScheduleTask(task, now))
+          .sort((a, b) => a.order - b.order);
+
+        if (!candidates.length) {
+          updateSaveStatus("All labs already have future review dates. No new random schedule was needed.");
+          return;
+        }
+
+        const plan = buildRandomSchedulePlan(candidates, dayCount, now);
+        const updatedAt = new Date().toISOString();
+
+        candidates.forEach((task) => {
+          const nextReviewAt = plan.assignments.get(task.id);
+          if (!nextReviewAt) return;
+          task.nextReviewAt = nextReviewAt;
+          task.updatedAt = updatedAt;
+        });
+
+        queueSave();
+        render();
+        updateSaveStatus(
+          "Random schedule set for " + candidates.length + " labs across " + dayCount + " days, from " + formatDate(plan.startAt) + " to " + formatDate(plan.endAt) + "." +
+          (state.fileHandle ? "" : " Link the project folder to save it into JSON.")
+        );
+      }
+
+      function shouldAutoScheduleTask(task, now) {
+        if (!task.nextReviewAt) return true;
+        const nextTime = new Date(task.nextReviewAt).getTime();
+        if (!Number.isFinite(nextTime)) return true;
+        return nextTime <= now.getTime();
+      }
+
+      function buildRandomSchedulePlan(candidates, dayCount, now) {
+        const planningDays = createPlanningDays(dayCount, now);
+        const candidateIds = new Set(candidates.map((task) => task.id));
+
+        state.tasks.forEach((task) => {
+          if (candidateIds.has(task.id)) return;
+          if (!task.nextReviewAt) return;
+          const nextDate = new Date(task.nextReviewAt);
+          if (nextDate.getTime() <= now.getTime()) return;
+          const dayIndex = getPlanningDayIndex(nextDate, planningDays[0].date);
+          if (dayIndex === null || dayIndex >= planningDays.length) return;
+          planningDays[dayIndex].load += 1;
+          const reservedSlot = roundMinutesToSlot((nextDate.getHours() * 60) + nextDate.getMinutes());
+          if (reservedSlot !== null) {
+            planningDays[dayIndex].reservedSlots.add(reservedSlot);
+          }
+        });
+
+        const shuffledCandidates = candidates.slice();
+        shuffleInPlace(shuffledCandidates);
+
+        shuffledCandidates.forEach((task) => {
+          const lowestLoad = Math.min(...planningDays.map((day) => day.load));
+          const lowestLoadDays = planningDays.filter((day) => day.load === lowestLoad);
+          const selectedDay = lowestLoadDays[Math.floor(Math.random() * lowestLoadDays.length)];
+          selectedDay.load += 1;
+          selectedDay.tasks.push(task);
+        });
+
+        const assignments = new Map();
+        planningDays.forEach((day) => {
+          const orderedTasks = day.tasks.slice().sort((a, b) => a.order - b.order);
+          const slots = generateDailySlots(orderedTasks.length, day.reservedSlots);
+          orderedTasks.forEach((task, index) => {
+            assignments.set(task.id, createDateFromMinutes(day.date, slots[index]).toISOString());
+          });
+        });
+
+        return {
+          assignments,
+          startAt: planningDays[0].date,
+          endAt: planningDays[planningDays.length - 1].date
+        };
+      }
+
+      function getVisibleTasks() {
+        return state.tasks.filter((task) => {
+          return taskMatchesFilter(task, state.filter) && taskMatchesSearch(task);
+        }).sort((a, b) => {
+          if (state.filter === "due" || state.filter === "overdue") {
+            return sortTasksForReview(a, b);
+          }
+          return a.order - b.order;
+        });
+      }
+
+      function renderDueBoard(items) {
+        if (!items.length) {
+          elements.dueBoardSummary.textContent = "Nothing is due right now. Keep going.";
+          elements.dueList.innerHTML = "<div class=\"empty\">No labs are due for practice right now.</div>";
+          return;
+        }
+
+        const overdueCount = items.filter((item) => item.reviewState.variant === "overdue").length;
+        elements.dueBoardSummary.textContent = items.length + " labs need practice now" + (overdueCount ? " | " + overdueCount + " overdue" : "") + ".";
+        elements.dueList.innerHTML = items.map(({ task, reviewState }) => {
+          return [
+            "<div class=\"due-card " + escapeHtml(reviewState.variant) + "\">",
+            "  <div>",
+            "    <strong>" + escapeHtml(task.fileName) + "</strong>",
+            "    <div class=\"muted\">" + escapeHtml(reviewState.longMessage) + "</div>",
+            "  </div>",
+            "  <div class=\"pill " + escapeHtml(reviewState.variant) + "\">" + escapeHtml(reviewState.label) + "</div>",
+            "</div>"
+          ].join("");
+        }).join("");
+      }
+
+      function summarizeReviewQueue() {
+        const items = state.tasks
+          .map((task) => ({ task, reviewState: getReviewState(task) }))
+          .filter((item) => item.reviewState.isDue)
+          .sort((a, b) => sortTasksForReview(a.task, b.task));
+
+        return {
+          due: items.length,
+          overdue: items.filter((item) => item.reviewState.variant === "overdue").length,
+          scheduled: state.tasks.filter((task) => Boolean(task.nextReviewAt)).length,
+          items
+        };
+      }
+
+      function getReviewState(task) {
+        if (!task.nextReviewAt) {
+          return {
+            variant: "pending",
+            label: "Not scheduled",
+            message: "Pick an interval and complete or review the lab.",
+            longMessage: "This lab does not have a spaced-review date yet.",
+            dateLabel: "Not scheduled",
+            isDue: false,
+            priority: 4
+          };
+        }
+
+        const dueTime = new Date(task.nextReviewAt).getTime();
+        const now = Date.now();
+        const diffMs = dueTime - now;
+
+        if (diffMs > 0) {
+          return {
+            variant: "scheduled",
+            label: "Due in " + formatRelativeTime(diffMs),
+            message: "Scheduled review interval is running.",
+            longMessage: "This lab is scheduled and not due yet.",
+            dateLabel: formatDateTime(task.nextReviewAt),
+            isDue: false,
+            priority: 3 + Math.ceil(diffMs / 3600000)
+          };
+        }
+
+        const overdueMs = now - dueTime;
+        const overdueHours = Math.floor(overdueMs / 3600000);
+        const isSameCalendarDay = isSameLocalDate(new Date(task.nextReviewAt), new Date());
+
+        return {
+          variant: overdueHours >= 24 || !isSameCalendarDay ? "overdue" : "due",
+          label: overdueMs < 3600000 ? "Due now" : "Overdue by " + formatRelativeTime(overdueMs),
+          message: overdueMs < 3600000 ? "Practice this lab now." : "Review soon before it fades.",
+          longMessage: overdueMs < 3600000
+            ? "This lab is due now. The scheduled time has been reached."
+            : "This lab passed its scheduled review time at " + formatDateTime(task.nextReviewAt) + ".",
+          dateLabel: formatDateTime(task.nextReviewAt),
+          isDue: true,
+          priority: 0 - Math.max(1, Math.floor(overdueMs / 3600000))
+        };
+      }
+
+      function describeInterval(days) {
+        const normalized = Math.min(10, Math.max(1, Math.round(Number(days) || 1)));
+        return normalized === 1 ? "1 day" : normalized + " days";
+      }
+
+      function getReviewActionMeta(task, rating) {
+        const nextInterval = calculateNextInterval(task.reviewIntervalDays, rating);
+        const nextReviewAt = addDays(new Date().toISOString(), nextInterval);
+        return {
+          label: String(rating),
+          detail: "Review again in " + describeInterval(nextInterval),
+          intervalLabel: describeInterval(nextInterval),
+          dateLabel: formatDateTime(nextReviewAt)
+        };
+      }
+
+      function renderReviewScoreBubble(task, rating) {
+        const meta = getReviewActionMeta(task, rating);
+        const selectedClass = Number(task.lastScore) === Number(rating) ? " selected" : "";
+        return [
+          "<button type=\"button\" class=\"score-bubble" + selectedClass + "\" data-score=\"" + escapeHtml(rating) + "\" data-role=\"rate-" + escapeHtml(rating) + "\" aria-pressed=\"" + (selectedClass ? "true" : "false") + "\" aria-label=\"Score " + escapeHtml(rating) + ". " + escapeHtml(meta.detail) + ". Next spacing " + escapeHtml(meta.intervalLabel) + ". Due " + escapeHtml(meta.dateLabel) + ".\" title=\"" + escapeHtml(meta.detail + " | " + meta.intervalLabel + " | Due " + meta.dateLabel) + "\">",
+          "  " + escapeHtml(meta.label),
+          "</button>"
+        ].join("");
+      }
+
+      function sortTasksForReview(a, b) {
+        const aState = getReviewState(a);
+        const bState = getReviewState(b);
+        if (aState.priority !== bState.priority) {
+          return aState.priority - bState.priority;
+        }
+        const aDate = a.nextReviewAt ? new Date(a.nextReviewAt).getTime() : Number.MAX_SAFE_INTEGER;
+        const bDate = b.nextReviewAt ? new Date(b.nextReviewAt).getTime() : Number.MAX_SAFE_INTEGER;
+        if (aDate !== bDate) {
+          return aDate - bDate;
+        }
+        return a.order - b.order;
+      }
+
+      function updateTask(taskId, updater) {
+        const task = state.tasks.find((item) => item.id === taskId);
+        if (!task) return;
+        updater(task);
+      }
+
+      function announceReviewChange(taskId, message) {
+        const task = state.tasks.find((item) => item.id === taskId);
+        if (!task) return;
+        if (!task.nextReviewAt) {
+          updateSaveStatus(message);
+          return;
+        }
+        const reviewState = getReviewState(task);
+        updateSaveStatus(message + " Next review: " + reviewState.dateLabel + " (" + describeInterval(task.reviewIntervalDays) + ").");
+      }
+
+      function getTaskViewportTop(taskId) {
+        if (!taskId) return null;
+        const element = document.querySelector("[data-task-id=\"" + cssEscape(taskId) + "\"]");
+        return element ? element.getBoundingClientRect().top : null;
+      }
+
+      function restoreTaskViewport(taskId, previousOffset, previousScrollY) {
+        if (!taskId || previousOffset === null) {
+          return;
+        }
+        const element = document.querySelector("[data-task-id=\"" + cssEscape(taskId) + "\"]");
+        if (!element) {
+          window.scrollTo(0, previousScrollY);
+          return;
+        }
+        const newOffset = element.getBoundingClientRect().top;
+        window.scrollBy(0, newOffset - previousOffset);
+      }
+
+      function queueSave() {
+        window.clearTimeout(state.saveTimer);
+        state.saveTimer = window.setTimeout(async () => {
+          if (!state.fileHandle) return;
+          updateSaveStatus("Saving to JSON...");
+          const ok = await writeJsonFile();
+          if (ok) {
+            updateSaveStatus("Saved to " + PROJECT_JSON + " at " + formatTime(new Date().toISOString()));
+          }
+        }, 280);
+      }
+
+      function applyReviewRating(taskId, rating) {
+        const nowIso = new Date().toISOString();
+        updateTask(taskId, (task) => {
+          const nextInterval = calculateNextInterval(task.reviewIntervalDays, rating);
+          task.reviewIntervalDays = nextInterval;
+          task.lastReviewedAt = nowIso;
+          task.nextReviewAt = addDays(nowIso, nextInterval);
+          task.status = "completed";
+          task.lastScore = Number(rating);
+          task.updatedAt = nowIso;
+        });
+        queueSave();
+        announceReviewChange(taskId, "Rated " + rating + "/10.");
+        render({ preserveTaskId: taskId });
+      }
+
+      async function linkProjectFolder() {
+        if (!window.showDirectoryPicker) {
+          updateSaveStatus("This browser does not support direct folder save. Use recent Chrome or Edge.");
+          return;
+        }
+
+        try {
+          const handle = await window.showDirectoryPicker({ mode: "readwrite" });
+          const permission = await verifyPermission(handle, true);
+          if (!permission) {
+            updateSaveStatus("Folder permission was not granted.");
+            return;
+          }
+
+          state.folderHandle = handle;
+          state.connectedFolderName = handle.name;
+          await saveHandleToDb(handle);
+          await connectToProjectJson(true);
+        } catch (error) {
+          if (error && error.name === "AbortError") return;
+          updateSaveStatus("Could not link the project folder.");
+          console.error(error);
+        }
+      }
+
+      async function reloadFromJson() {
+        if (!state.folderHandle) {
+          updateSaveStatus("Link the project folder first.");
+          return;
+        }
+        await connectToProjectJson(false);
+      }
+
+      async function restoreLinkedFolder() {
+        try {
+          const handle = await readHandleFromDb();
+          if (!handle) {
+            updateFolderStatus(false, "Project folder not linked yet");
+            return;
+          }
+
+          const hasPermission = await verifyPermission(handle, false);
+          if (!hasPermission) {
+            state.folderHandle = null;
+            updateFolderStatus(false, "Saved folder handle found, but permission needs to be granted again");
+            updateSaveStatus("Click Link Project Folder to reconnect and keep using the same JSON file.");
+            return;
+          }
+
+          state.folderHandle = handle;
+          state.connectedFolderName = handle.name || "";
+          await connectToProjectJson(false);
+        } catch (error) {
+          console.error(error);
+          updateFolderStatus(false, "Could not restore previous folder link");
+        }
+      }
+
+      async function connectToProjectJson(forceWriteAfterLoad) {
+        try {
+          state.fileHandle = await state.folderHandle.getFileHandle(PROJECT_JSON, { create: true });
+          const file = await state.fileHandle.getFile();
+          const text = await file.text();
+
+          if (!text.trim()) {
+            state.tasks = defaultTasks.map((task) => ({ ...task }));
+            await writeJsonFile();
+          } else {
+            const data = JSON.parse(text);
+            const loadedTasks = Array.isArray(data.tasks) ? data.tasks : [];
+            state.tasks = mergeTasks(defaultTasks, loadedTasks);
+            const loadedTaskMap = new Map(loadedTasks.map((task) => [task.id || makeId(task.fileName || ""), task]));
+            const filledDefaultNotes = state.tasks.some((task) => {
+              const saved = loadedTaskMap.get(task.id);
+              return (!saved || !String(saved.notes || "").trim()) && Boolean(task.notes);
+            });
+            const normalizedNotesChanged = state.tasks.some((task) => {
+              const saved = loadedTaskMap.get(task.id);
+              return saved && normalizeNoteMarkup(saved.notes || "") !== (task.notes || "");
+            });
+            if (forceWriteAfterLoad || filledDefaultNotes || normalizedNotesChanged) {
+              await writeJsonFile();
+            }
+          }
+
+          updateFolderStatus(true, "Linked folder: " + state.connectedFolderName);
+          updateSaveStatus("Using " + PROJECT_JSON + " in this folder.");
+          render();
+        } catch (error) {
+          console.error(error);
+          updateFolderStatus(false, "Could not open " + PROJECT_JSON);
+          updateSaveStatus("Link the folder again or check if the JSON file is valid.");
+        }
+      }
+
+      async function writeJsonFile() {
+        if (!state.fileHandle) return false;
+        try {
+          const writable = await state.fileHandle.createWritable();
+          await writable.write(JSON.stringify({
+            version: 1,
+            savedAt: new Date().toISOString(),
+            tasks: state.tasks.map((task) => ({
+              id: task.id,
+              fileName: task.fileName,
+              status: task.status,
+              notes: task.notes,
+              updatedAt: task.updatedAt,
+              reviewIntervalDays: task.reviewIntervalDays,
+              lastReviewedAt: task.lastReviewedAt,
+              nextReviewAt: task.nextReviewAt,
+              lastScore: task.lastScore,
+              screenRecorded: Boolean(task.screenRecorded)
+            }))
+          }, null, 2));
+          await writable.close();
+          return true;
+        } catch (error) {
+          console.error(error);
+          updateSaveStatus("Save failed. Please relink the folder.");
+          return false;
+        }
+      }
+
+      function mergeTasks(baseTasks, loadedTasks) {
+        const loadedMap = new Map(loadedTasks.map((task) => [task.id || makeId(task.fileName || ""), task]));
+        return baseTasks.map((task) => {
+          const saved = loadedMap.get(task.id);
+          if (!saved) return { ...task };
+          const interval = Number(saved.reviewIntervalDays) || 3;
+          const inferredLastReviewedAt = saved.lastReviewedAt || ((saved.status === "completed" || saved.status === "review") ? (saved.updatedAt || null) : null);
+          const inferredNextReviewAt = saved.nextReviewAt || (inferredLastReviewedAt ? addDays(inferredLastReviewedAt, interval) : null);
+          const normalizedSavedNotes = normalizeNoteMarkup(typeof saved.notes === "string" ? saved.notes : "");
+          return {
+            ...task,
+            status: normalizeStatus(saved.status),
+            notes: normalizedSavedNotes || task.notes,
+            updatedAt: saved.updatedAt || null,
+            reviewIntervalDays: interval,
+            lastReviewedAt: inferredLastReviewedAt,
+            nextReviewAt: inferredNextReviewAt,
+            lastScore: Number.isFinite(Number(saved.lastScore)) ? Number(saved.lastScore) : null,
+            screenRecorded: Boolean(saved.screenRecorded)
+          };
+        });
+      }
+
+      function applyNoteCommand(editor, command, value) {
+        editor.focus();
+        if (typeof document.execCommand !== "function") return;
+
+        if (command === "codeBlock") {
+          document.execCommand("formatBlock", false, "pre");
+          return;
+        }
+
+        if (command === "insertCommands") {
+          document.execCommand("insertHTML", false, "<h4>Key Commands</h4><ul><li><code>show running-config</code></li></ul>");
+          return;
+        }
+
+        if (command === "formatBlock") {
+          document.execCommand("formatBlock", false, value || "p");
+          return;
+        }
+
+        document.execCommand(command, false, value || null);
+      }
+
+      function syncNoteEditor(taskId, editor, updateDom) {
+        const sanitized = normalizeNoteMarkup(editor.innerHTML);
+        updateTask(taskId, (task) => {
+          task.notes = sanitized;
+          task.updatedAt = new Date().toISOString();
+        });
+        if (updateDom && editor.innerHTML !== sanitized) {
+          editor.innerHTML = sanitized;
+        }
+        queueSave();
+        updateSaveStatus(state.fileHandle ? "Saving to JSON..." : "Folder not linked yet. Changes are only in this tab for now.");
+      }
+
+      function normalizeStatus(status) {
+        if (status === "completed" || status === "review" || status === "pending") return status;
+        return "pending";
+      }
+
+      function labelForStatus(status) {
+        if (status === "completed") return "Completed";
+        if (status === "review") return "Review";
+        return "Pending";
+      }
+
+      function labelForFilter(filter) {
+        if (filter === "all") return "All";
+        if (filter === "due") return "Due Now";
+        if (filter === "overdue") return "Overdue";
+        if (filter === "completed") return "Completed";
+        if (filter === "review") return "Review";
+        if (filter === "recorded") return "Recorded";
+        if (filter === "not-recorded") return "Not Recorded";
+        return "Pending";
+      }
+
+      function taskMatchesFilter(task, filter) {
+        const reviewState = getReviewState(task);
+        if (filter === "all") return true;
+        if (filter === "due") return reviewState.isDue;
+        if (filter === "overdue") return reviewState.variant === "overdue";
+        if (filter === "recorded") return Boolean(task.screenRecorded);
+        if (filter === "not-recorded") return !task.screenRecorded;
+        return task.status === filter;
+      }
+
+      function taskMatchesSearch(task) {
+        if (!state.search) return true;
+        const reviewState = getReviewState(task);
+        const text = (task.fileName + " " + extractNoteText(task.notes) + " " + reviewState.label + " " + reviewState.message + " " + (task.screenRecorded ? "screen recorded recorded" : "not recorded unrecorded")).toLowerCase();
+        return text.includes(state.search);
+      }
+
+      function renderFilterBar() {
+        elements.filterBar.innerHTML = FILTERS.map((filter) => {
+          const active = state.filter === filter ? " active" : "";
+          const count = state.tasks.filter((task) => taskMatchesFilter(task, filter) && taskMatchesSearch(task)).length;
+          const label = labelForFilter(filter) + " (" + count + ")";
+          return "<button type=\"button\" class=\"filter-chip" + active + "\" data-filter=\"" + escapeHtml(filter) + "\" aria-pressed=\"" + (state.filter === filter ? "true" : "false") + "\">" + escapeHtml(label) + "</button>";
+        }).join("");
+      }
+
+      function updateFolderStatus(connected, text) {
+        elements.folderStatusLine.classList.toggle("connected", connected);
+        elements.folderStatusText.textContent = text;
+      }
+
+      function updateSaveStatus(text) {
+        elements.saveStatusText.textContent = text;
+      }
+
+      function updateScrollTopButtonVisibility() {
+        elements.scrollTopButton.classList.toggle("visible", window.scrollY > 260);
+      }
+
+      function handleWindowScroll() {
+        updateScrollTopButtonVisibility();
+        queueStickyStatsUpdate();
+      }
+
+      function queueStickyStatsUpdate() {
+        if (state.stickyStatsFrame) return;
+        state.stickyStatsFrame = window.requestAnimationFrame(() => {
+          state.stickyStatsFrame = 0;
+          updateStickyStats();
+        });
+      }
+
+      function updateStickyStats() {
+        if (!elements.statsShell || !elements.statsDock) return;
+
+        if (window.innerWidth <= 860) {
+          releaseStickyStats();
+          return;
+        }
+
+        const shellRect = elements.statsShell.getBoundingClientRect();
+        const shouldFloat = shellRect.top <= 16 && window.scrollY > 20;
+
+        if (!shouldFloat) {
+          releaseStickyStats();
+          return;
+        }
+
+        elements.statsDock.classList.add("visible");
+      }
+
+      function releaseStickyStats() {
+        if (!elements.statsDock) return;
+        elements.statsDock.classList.remove("visible");
+      }
+
+      function makeId(value) {
+        return String(value)
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "");
+      }
+
+      function buildFileHref(fileName) {
+        const absoluteFileUrl = new URL(fileName, window.location.href).href;
+        if (/\.pkt$/i.test(fileName) && window.location.protocol === "file:") {
+          return "ccna-pkt:" + encodeURIComponent(absoluteFileUrl);
+        }
+        return absoluteFileUrl;
+      }
+
+      function calculateNextInterval(currentInterval, rating) {
+        return Math.min(10, Math.max(1, Math.round(Number(rating) || 1)));
+      }
+
+      function addDays(isoValue, days) {
+        const date = new Date(isoValue);
+        date.setTime(date.getTime() + (Number(days) * 86400000));
+        return date.toISOString();
+      }
+
+      function formatDate(value) {
+        const date = new Date(value);
+        return date.toLocaleDateString([], {
+          year: "numeric",
+          month: "short",
+          day: "numeric"
+        });
+      }
+
+      function formatTime(value) {
+        const date = new Date(value);
+        return date.toLocaleTimeString([], {
+          hour: "numeric",
+          minute: "2-digit"
+        });
+      }
+
+      function formatDateTime(value) {
+        const date = new Date(value);
+        return date.toLocaleString([], {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          second: "2-digit"
+        });
+      }
+
+      function formatRelativeTime(ms) {
+        const totalMinutes = Math.max(1, Math.round(ms / 60000));
+        if (totalMinutes < 60) {
+          return totalMinutes + " min";
+        }
+        const totalHours = Math.round((totalMinutes / 60) * 10) / 10;
+        if (totalHours < 24) {
+          return (Number.isInteger(totalHours) ? totalHours.toFixed(0) : totalHours.toFixed(1)) + " hr";
+        }
+        const totalDays = Math.round((totalHours / 24) * 10) / 10;
+        return (Number.isInteger(totalDays) ? totalDays.toFixed(0) : totalDays.toFixed(1)) + " day";
+      }
+
+      function clampWholeNumber(value, min, max, fallback) {
+        const numeric = Math.round(Number(value));
+        if (!Number.isFinite(numeric)) return fallback;
+        return Math.min(max, Math.max(min, numeric));
+      }
+
+      function createPlanningDays(dayCount, now) {
+        const startDate = startOfLocalDay(addLocalDays(now, 1));
+        return Array.from({ length: dayCount }, (_, index) => ({
+          date: addLocalDays(startDate, index),
+          load: 0,
+          tasks: [],
+          reservedSlots: new Set()
+        }));
+      }
+
+      function getPlanningDayIndex(value, startDate) {
+        const localDay = startOfLocalDay(value);
+        const diffDays = Math.round((localDay.getTime() - startDate.getTime()) / 86400000);
+        if (diffDays < 0) return null;
+        return diffDays;
+      }
+
+      function generateDailySlots(count, reservedSlots) {
+        const startMinutes = RANDOM_SCHEDULE_START_HOUR * 60;
+        const endMinutes = RANDOM_SCHEDULE_END_HOUR * 60;
+        const slots = [];
+
+        for (let minutes = startMinutes; minutes < endMinutes; minutes += RANDOM_SCHEDULE_SLOT_MINUTES) {
+          if (!reservedSlots.has(minutes)) {
+            slots.push(minutes);
+          }
+        }
+
+        shuffleInPlace(slots);
+        const selected = slots.slice(0, count);
+
+        while (selected.length < count) {
+          const fallbackSlotCount = Math.max(1, Math.floor((endMinutes - startMinutes) / RANDOM_SCHEDULE_SLOT_MINUTES));
+          const randomSlotIndex = Math.floor(Math.random() * fallbackSlotCount);
+          selected.push(startMinutes + (randomSlotIndex * RANDOM_SCHEDULE_SLOT_MINUTES));
+        }
+
+        return selected.sort((a, b) => a - b);
+      }
+
+      function roundMinutesToSlot(totalMinutes) {
+        const minMinutes = RANDOM_SCHEDULE_START_HOUR * 60;
+        const maxMinutes = (RANDOM_SCHEDULE_END_HOUR * 60) - RANDOM_SCHEDULE_SLOT_MINUTES;
+        if (totalMinutes < minMinutes || totalMinutes > maxMinutes) {
+          return null;
+        }
+        const rounded = Math.round(totalMinutes / RANDOM_SCHEDULE_SLOT_MINUTES) * RANDOM_SCHEDULE_SLOT_MINUTES;
+        return Math.max(minMinutes, Math.min(maxMinutes, rounded));
+      }
+
+      function createDateFromMinutes(baseDate, minutesFromMidnight) {
+        const result = new Date(baseDate);
+        result.setHours(Math.floor(minutesFromMidnight / 60), minutesFromMidnight % 60, 0, 0);
+        return result;
+      }
+
+      function startOfLocalDay(value) {
+        const date = new Date(value);
+        date.setHours(0, 0, 0, 0);
+        return date;
+      }
+
+      function addLocalDays(value, days) {
+        const date = new Date(value);
+        date.setDate(date.getDate() + Number(days));
+        return date;
+      }
+
+      function shuffleInPlace(items) {
+        for (let index = items.length - 1; index > 0; index -= 1) {
+          const swapIndex = Math.floor(Math.random() * (index + 1));
+          const current = items[index];
+          items[index] = items[swapIndex];
+          items[swapIndex] = current;
+        }
+        return items;
+      }
+
+      function isSameLocalDate(a, b) {
+        return a.getFullYear() === b.getFullYear() &&
+          a.getMonth() === b.getMonth() &&
+          a.getDate() === b.getDate();
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function cssEscape(value) {
+        if (window.CSS && typeof window.CSS.escape === "function") {
+          return window.CSS.escape(value);
+        }
+        return String(value).replace(/"/g, '\\"');
+      }
+
+      async function verifyPermission(handle, ask) {
+        const options = { mode: "readwrite" };
+        const current = await handle.queryPermission(options);
+        if (current === "granted") return true;
+        if (!ask) return false;
+        const request = await handle.requestPermission(options);
+        return request === "granted";
+      }
+
+      function openDb() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open(HANDLE_DB, 1);
+          request.onupgradeneeded = () => {
+            request.result.createObjectStore(HANDLE_STORE);
+          };
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      async function saveHandleToDb(handle) {
+        const db = await openDb();
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction(HANDLE_STORE, "readwrite");
+          tx.objectStore(HANDLE_STORE).put(handle, HANDLE_KEY);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+        db.close();
+      }
+
+      async function readHandleFromDb() {
+        const db = await openDb();
+        const handle = await new Promise((resolve, reject) => {
+          const tx = db.transaction(HANDLE_STORE, "readonly");
+          const request = tx.objectStore(HANDLE_STORE).get(HANDLE_KEY);
+          request.onsuccess = () => resolve(request.result || null);
+          request.onerror = () => reject(request.error);
+        });
+        db.close();
+        return handle;
+      }
+    })();
+  </script>
+</body>
+</html>

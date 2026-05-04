@@ -1,0 +1,15 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Classes\ccna-pkt]
+@="URL:CCNA Packet Tracer Protocol"
+"URL Protocol"=""
+
+[HKEY_CURRENT_USER\Software\Classes\ccna-pkt\DefaultIcon]
+@="C:\\Program Files\\Cisco Packet Tracer 9.0.0\\bin\\PacketTracer.exe,0"
+
+[HKEY_CURRENT_USER\Software\Classes\ccna-pkt\shell]
+
+[HKEY_CURRENT_USER\Software\Classes\ccna-pkt\shell\open]
+
+[HKEY_CURRENT_USER\Software\Classes\ccna-pkt\shell\open\command]
+@="\"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\" -NoProfile -ExecutionPolicy Bypass -File \"D:\\CCNA LAB Files\\CCNA Lab Series Course Files-20260331T180735Z-3-001\\Prac 1\\packettracer-protocol-launcher.ps1\" \"%1\""
