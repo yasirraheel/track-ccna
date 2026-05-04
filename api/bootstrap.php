@@ -6,13 +6,12 @@ require_once __DIR__ . DIRECTORY_SEPARATOR . 'lib.php';
 try {
     $boot = trackerBootDatabase();
 
+    trackerJsonResponse(trackerBuildBootstrapPayload($boot));
+} catch (TrackerHttpException $error) {
     trackerJsonResponse([
-        'ok' => true,
-        'mode' => 'database',
-        'driver' => str_starts_with($boot['config']['dsn'], 'mysql:') ? 'mysql' : 'sqlite',
-        'seededFromJson' => $boot['seeded_from_json'],
-        'tasks' => trackerFetchTasks($boot['pdo']),
-    ]);
+        'ok' => false,
+        'message' => $error->getMessage(),
+    ], $error->statusCode);
 } catch (Throwable $error) {
     trackerJsonResponse([
         'ok' => false,

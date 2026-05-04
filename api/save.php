@@ -15,20 +15,27 @@ try {
     $tasks = isset($payload['tasks']) && is_array($payload['tasks']) ? $payload['tasks'] : null;
 
     if ($tasks === null) {
-        trackerJsonResponse([
-            'ok' => false,
-            'message' => 'Tasks payload is required.',
-        ], 422);
+        throw new TrackerHttpException('Tasks payload is required.', 422);
     }
 
     $boot = trackerBootDatabase();
-    trackerSaveTasks($boot['pdo'], $tasks, 'api-save');
+    $currentUser = trackerCurrentUser($boot['pdo']);
+    if ($currentUser === null) {
+        throw new TrackerHttpException('Please sign in to save this tracker.', 401);
+    }
+
+    trackerSaveUserTasks($boot['pdo'], (string) $currentUser['id'], $tasks, 'api-save');
 
     trackerJsonResponse([
         'ok' => true,
         'savedAt' => gmdate(DATE_ATOM),
         'count' => count($tasks),
     ]);
+} catch (TrackerHttpException $error) {
+    trackerJsonResponse([
+        'ok' => false,
+        'message' => $error->getMessage(),
+    ], $error->statusCode);
 } catch (Throwable $error) {
     trackerJsonResponse([
         'ok' => false,

@@ -12,8 +12,9 @@ try {
         exit(1);
     }
 
-    trackerSaveTasks($boot['pdo'], $tasks, 'json-import-script');
-    fwrite(STDOUT, "Imported " . count($tasks) . " tasks into the database.\n");
+    trackerSaveLegacyTasks($boot['pdo'], $tasks, 'json-import-script');
+    trackerSaveTaskTemplates($boot['pdo'], $tasks, 'json-import-script');
+    fwrite(STDOUT, "Imported " . count($tasks) . " tasks into the shared backup and user template tables.\n");
 } catch (Throwable $error) {
     fwrite(STDERR, $error->getMessage() . "\n");
     exit(1);

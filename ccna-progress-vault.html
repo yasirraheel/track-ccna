@@ -194,6 +194,16 @@
 
     button:hover { transform: translateY(-1px); }
 
+    button:disabled,
+    input:disabled {
+      cursor: not-allowed;
+      opacity: 0.65;
+    }
+
+    button:disabled:hover {
+      transform: none;
+    }
+
     .primary {
       background: linear-gradient(135deg, var(--accent), #92edd5);
       color: #072029;
@@ -397,6 +407,63 @@
       color: var(--muted);
       font-size: 0.92rem;
       line-height: 1.55;
+    }
+
+    .account-panel {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(0, 0, 0, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .account-copy {
+      display: grid;
+      gap: 6px;
+    }
+
+    .account-copy strong {
+      font-size: 0.98rem;
+      letter-spacing: 0.01em;
+    }
+
+    .account-fields {
+      display: grid;
+      gap: 10px;
+    }
+
+    .auth-field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .auth-field span {
+      color: var(--muted);
+      font-size: 0.84rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    .auth-field input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.22);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      outline: none;
+    }
+
+    .auth-field input:focus {
+      border-color: rgba(102, 215, 192, 0.6);
+      box-shadow: 0 0 0 4px rgba(102, 215, 192, 0.12);
+    }
+
+    .account-user-card {
+      display: grid;
+      gap: 10px;
     }
 
     .due-list {
@@ -867,6 +934,13 @@
       background: rgba(255, 255, 255, 0.03);
     }
 
+    .empty strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text);
+      font-size: 1rem;
+    }
+
     .scroll-top {
       position: fixed;
       right: 24px;
@@ -933,6 +1007,10 @@
 
       .schedule-field {
         justify-content: space-between;
+      }
+
+      .account-panel {
+        padding: 12px;
       }
 
       .stats {
@@ -1069,6 +1147,41 @@
         <p class="muted" id="saveHelpSecondary" style="margin:0;">
           Packet Tracer launch from the list needs the one-time open helper registration.
         </p>
+        <div class="account-panel" id="accountPanel" hidden>
+          <div id="accountGuestBox">
+            <div class="account-copy">
+              <strong>Private Student Accounts</strong>
+              <span class="muted" id="accountHelpText">Create a separate account for each student so notes, progress, schedules, and screen-recording marks never mix together.</span>
+            </div>
+            <div class="account-fields">
+              <label class="auth-field" for="authDisplayNameInput">
+                <span>Display Name</span>
+                <input id="authDisplayNameInput" type="text" autocomplete="name" placeholder="Your or student's name">
+              </label>
+              <label class="auth-field" for="authUsernameInput">
+                <span>Username</span>
+                <input id="authUsernameInput" type="text" autocapitalize="none" autocomplete="username" placeholder="student01">
+              </label>
+              <label class="auth-field" for="authPasswordInput">
+                <span>Password</span>
+                <input id="authPasswordInput" type="password" autocomplete="current-password" placeholder="At least 6 characters">
+              </label>
+            </div>
+            <div class="button-row">
+              <button class="primary" id="loginButton" type="button">Sign In</button>
+              <button class="secondary" id="registerButton" type="button">Create Account</button>
+            </div>
+          </div>
+          <div class="account-user-card" id="accountUserBox" hidden>
+            <div class="account-copy">
+              <strong id="accountWelcomeText">Signed in</strong>
+              <span class="muted" id="accountMetaText">Your progress is private to this account.</span>
+            </div>
+            <div class="button-row">
+              <button class="secondary" id="logoutButton" type="button">Sign Out</button>
+            </div>
+          </div>
+        </div>
       </aside>
     </section>
 
@@ -1149,10 +1262,13 @@
       const HANDLE_KEY = "project-folder";
       const FILTER_STORAGE_KEY = "ccna-lab-tracker-active-filter";
       const API_BOOTSTRAP_URL = "api/bootstrap.php";
+      const API_AUTH_URL = "api/auth.php";
       const API_SAVE_URL = "api/save.php";
       const API_UPLOAD_URL = "api/upload.php";
       const FILTERS = ["all", "due", "overdue", "pending", "review", "completed", "recorded", "not-recorded"];
       const SEARCH_DEBOUNCE = 180;
+      const SEARCH_PLACEHOLDER = "Search lab names, notes, or review status";
+      const LOCKED_SEARCH_PLACEHOLDER = "Sign in to load and search this student's labs";
       const RANDOM_SCHEDULE_DEFAULT_DAYS = 10;
       const RANDOM_SCHEDULE_MIN_DAYS = 1;
       const RANDOM_SCHEDULE_MAX_DAYS = 60;
@@ -1592,6 +1708,18 @@
         saveStatusText: document.getElementById("saveStatusText"),
         saveHelpPrimary: document.getElementById("saveHelpPrimary"),
         saveHelpSecondary: document.getElementById("saveHelpSecondary"),
+        accountPanel: document.getElementById("accountPanel"),
+        accountGuestBox: document.getElementById("accountGuestBox"),
+        accountUserBox: document.getElementById("accountUserBox"),
+        accountHelpText: document.getElementById("accountHelpText"),
+        authDisplayNameInput: document.getElementById("authDisplayNameInput"),
+        authUsernameInput: document.getElementById("authUsernameInput"),
+        authPasswordInput: document.getElementById("authPasswordInput"),
+        loginButton: document.getElementById("loginButton"),
+        registerButton: document.getElementById("registerButton"),
+        logoutButton: document.getElementById("logoutButton"),
+        accountWelcomeText: document.getElementById("accountWelcomeText"),
+        accountMetaText: document.getElementById("accountMetaText"),
         scrollTopButton: document.getElementById("scrollTopButton"),
         globalImageInput: document.getElementById("globalImageInput"),
         imageTooltip: document.getElementById("imageTooltip")
@@ -1621,6 +1749,11 @@
         searchTimer: null,
         connectedFolderName: "",
         persistenceMode: "tab",
+        currentUser: null,
+        requiresAuth: false,
+        hasUsers: false,
+        legacyImportPending: false,
+        authBusy: false,
         expandedTaskIds: new Set(),
         stickyStatsFrame: 0,
         pinnedVisibleTaskId: null
@@ -1657,6 +1790,7 @@
           const response = await fetch(API_BOOTSTRAP_URL, {
             method: "GET",
             cache: "no-store",
+            credentials: "same-origin",
             headers: {
               "Accept": "application/json"
             }
@@ -1667,19 +1801,11 @@
           }
 
           const payload = await response.json();
-          if (!payload || payload.ok !== true || !Array.isArray(payload.tasks)) {
+          if (!payload || payload.ok !== true || !("requiresAuth" in payload)) {
             throw new Error("Online database bootstrap payload is invalid.");
           }
 
-          state.tasks = mergeTasks(defaultTasks, payload.tasks);
-          state.persistenceMode = "database";
-          state.fileHandle = null;
-          state.folderHandle = null;
-          state.connectedFolderName = "";
-          configureBackendModeUi(payload.driver || "database");
-          updateFolderStatus(true, "Online database connected");
-          updateSaveStatus("Saving to the live database for all users.");
-          render();
+          applyBackendBootstrap(payload);
           return true;
         } catch (error) {
           console.error(error);
@@ -1688,24 +1814,85 @@
         }
       }
 
+      function applyBackendBootstrap(payload) {
+        state.persistenceMode = "database";
+        state.fileHandle = null;
+        state.folderHandle = null;
+        state.connectedFolderName = "";
+        state.currentUser = payload.user || null;
+        state.requiresAuth = !state.currentUser;
+        state.hasUsers = Boolean(payload.hasUsers);
+        state.legacyImportPending = Boolean(payload.legacyImportPending);
+        state.tasks = state.currentUser && Array.isArray(payload.tasks)
+          ? mergeTasks(defaultTasks, payload.tasks)
+          : [];
+
+        configureBackendModeUi(payload.driver || "database");
+        updateAccountUi(payload.driver || "database");
+
+        if (state.currentUser) {
+          updateFolderStatus(true, "Signed in as " + state.currentUser.displayName);
+          updateSaveStatus("Private progress is syncing for " + state.currentUser.displayName + ".");
+        } else if (state.legacyImportPending && !state.hasUsers) {
+          updateFolderStatus(false, "Create the first account to keep the imported tracker data");
+          updateSaveStatus("Create the first account to move the current imported progress into your own private login.");
+        } else {
+          updateFolderStatus(false, "Sign in to load this student's private tracker");
+          updateSaveStatus("Sign in or create an account so each student keeps separate progress.");
+        }
+
+        render();
+      }
+
       function configureBackendModeUi(driverLabel) {
         elements.linkFolderButton.hidden = true;
         elements.reloadJsonButton.hidden = false;
         elements.reloadJsonButton.textContent = "Reload Online Data";
-        elements.saveHelpPrimary.innerHTML = "This live site now saves progress into the server database so all users stay in sync.";
-        elements.saveHelpSecondary.textContent = "Packet Tracer files still open normally from downloads, and image notes upload to the server attachments folder.";
+        if (state.currentUser) {
+          elements.saveHelpPrimary.innerHTML = "This live site now keeps each student's progress in a private " + escapeHtml(driverLabel) + " account.";
+          elements.saveHelpSecondary.textContent = "Packet Tracer files still open from the live site, and note images upload into this user's server storage.";
+        } else if (state.legacyImportPending && !state.hasUsers) {
+          elements.saveHelpPrimary.innerHTML = "Create the <strong>first account</strong> to claim the current imported tracker data under your own login.";
+          elements.saveHelpSecondary.textContent = "After that, every new student account starts with a separate fresh copy so nobody mixes each other's work.";
+        } else {
+          elements.saveHelpPrimary.innerHTML = "Each student should sign in with a personal account so progress, notes, schedules, and recorded marks stay separate.";
+          elements.saveHelpSecondary.textContent = "Live data is stored on the server per user, while Packet Tracer files still open directly from the site.";
+        }
       }
 
       function configureFolderModeUi() {
         elements.linkFolderButton.hidden = false;
         elements.reloadJsonButton.hidden = false;
         elements.reloadJsonButton.textContent = "Reload JSON";
+        elements.accountPanel.hidden = true;
         elements.saveHelpPrimary.innerHTML = "The first time, click <strong>Link Project Folder</strong> once so progress can save into the project JSON file.";
         elements.saveHelpSecondary.textContent = "Packet Tracer launch from the list needs the one-time open helper registration.";
       }
 
       function isBackendMode() {
         return state.persistenceMode === "database";
+      }
+
+      function updateAccountUi(driverLabel) {
+        if (!isBackendMode()) {
+          elements.accountPanel.hidden = true;
+          return;
+        }
+
+        elements.accountPanel.hidden = false;
+        elements.accountGuestBox.hidden = Boolean(state.currentUser);
+        elements.accountUserBox.hidden = !state.currentUser;
+
+        if (state.currentUser) {
+          elements.accountWelcomeText.textContent = state.currentUser.displayName + " (" + state.currentUser.username + ")";
+          elements.accountMetaText.textContent = "Role: " + state.currentUser.role + " | Synced privately in " + String(driverLabel).toUpperCase() + ".";
+        } else if (state.legacyImportPending && !state.hasUsers) {
+          elements.accountHelpText.textContent = "Create the first account here to keep the current imported tracker data under your own login. Later student accounts start fresh and separate.";
+        } else {
+          elements.accountHelpText.textContent = "Create a separate account for each student so notes, progress, schedules, and screen-recording marks never mix together.";
+        }
+
+        setAuthBusy(state.authBusy);
       }
 
       function bindEvents() {
@@ -1916,6 +2103,19 @@
         elements.randomScheduleButton.addEventListener("click", applyRandomSchedule);
         elements.linkFolderButton.addEventListener("click", linkProjectFolder);
         elements.reloadJsonButton.addEventListener("click", reloadFromJson);
+        elements.loginButton.addEventListener("click", () => {
+          submitAuth("login");
+        });
+        elements.registerButton.addEventListener("click", () => {
+          submitAuth("register");
+        });
+        elements.logoutButton.addEventListener("click", logoutBackendUser);
+        elements.authPasswordInput.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            submitAuth("login");
+          }
+        });
         elements.scrollTopButton.addEventListener("click", () => {
           window.scrollTo({ top: 0, behavior: "smooth" });
         });
@@ -1964,16 +2164,26 @@
 
       async function saveImageToFolder(file) {
         if (isBackendMode()) {
+          if (state.requiresAuth || !state.currentUser) {
+            window.alert("Please sign in first so this image is saved inside the correct student's account.");
+            return null;
+          }
+
           try {
             const formData = new FormData();
             formData.append("image", file);
 
             const response = await fetch(API_UPLOAD_URL, {
               method: "POST",
+              credentials: "same-origin",
               body: formData
             });
 
             const payload = await response.json();
+            if (response.status === 401) {
+              await connectToBackend();
+              throw new Error("Your session expired. Please sign in again.");
+            }
             if (!response.ok || !payload || payload.ok !== true || !payload.url) {
               throw new Error(payload && payload.message ? payload.message : "Image upload failed.");
             }
@@ -2042,6 +2252,7 @@
         const previousScrollY = window.scrollY;
         const previousOffset = preserveTaskId ? getTaskViewportTop(preserveTaskId) : null;
         renderFilterBar();
+        updateInteractiveState();
         const filtered = getVisibleTasks();
         const reviewSummary = summarizeReviewQueue();
         const completed = state.tasks.filter((task) => task.status === "completed").length;
@@ -2054,9 +2265,22 @@
         elements.dockReviewCount.textContent = String(reviewSummary.due);
         elements.pendingCount.textContent = String(reviewSummary.overdue);
         elements.dockPendingCount.textContent = String(reviewSummary.overdue);
-        elements.resultsText.textContent = filtered.length + (filtered.length === 1 ? " lab showing" : " labs showing");
+        elements.resultsText.textContent = state.requiresAuth
+          ? "Sign in to load this student's labs"
+          : filtered.length + (filtered.length === 1 ? " lab showing" : " labs showing");
 
         renderDueBoard(reviewSummary.items);
+
+        if (state.requiresAuth) {
+          elements.taskList.innerHTML = [
+            "<div class=\"empty\">",
+            "  <strong>Sign in to open a private tracker</strong>",
+            "  Each student should use a separate account so progress, notes, schedules, and recorded marks stay private.",
+            "</div>"
+          ].join("");
+          queueStickyStatsUpdate();
+          return;
+        }
 
         if (!filtered.length) {
           elements.taskList.innerHTML = "<div class=\"empty\">No lab matches this filter or search.</div>";
@@ -2067,6 +2291,14 @@
         elements.taskList.innerHTML = filtered.map(renderTaskRow).join("");
         restoreTaskViewport(preserveTaskId, previousOffset, previousScrollY);
         queueStickyStatsUpdate();
+      }
+
+      function updateInteractiveState() {
+        const locked = Boolean(state.requiresAuth);
+        elements.searchInput.disabled = locked;
+        elements.searchInput.placeholder = locked ? LOCKED_SEARCH_PLACEHOLDER : SEARCH_PLACEHOLDER;
+        elements.randomScheduleDays.disabled = locked;
+        elements.randomScheduleButton.disabled = locked;
       }
 
       function renderTaskRow(task) {
@@ -2156,6 +2388,11 @@
       }
 
       function applyRandomSchedule() {
+        if (state.requiresAuth) {
+          updateSaveStatus("Sign in first so the random planner can save into this student's private tracker.");
+          return;
+        }
+
         const dayCount = clampWholeNumber(elements.randomScheduleDays.value, RANDOM_SCHEDULE_MIN_DAYS, RANDOM_SCHEDULE_MAX_DAYS, RANDOM_SCHEDULE_DEFAULT_DAYS);
         elements.randomScheduleDays.value = String(dayCount);
 
@@ -2251,6 +2488,12 @@
       }
 
       function renderDueBoard(items) {
+        if (state.requiresAuth) {
+          elements.dueBoardSummary.textContent = "Sign in to see this student's due labs.";
+          elements.dueList.innerHTML = "<div class=\"empty\"><strong>Private review queue locked</strong>Sign in first to see what is due for this account.</div>";
+          return;
+        }
+
         if (!items.length) {
           elements.dueBoardSummary.textContent = "Nothing is due right now. Keep going.";
           elements.dueList.innerHTML = "<div class=\"empty\">No labs are due for practice right now.</div>";
@@ -2411,8 +2654,13 @@
       function queueSave() {
         window.clearTimeout(state.saveTimer);
         state.saveTimer = window.setTimeout(async () => {
+          if (isBackendMode() && state.requiresAuth) {
+            updateSaveStatus("Sign in first so changes save into the correct private account.");
+            return;
+          }
+
           if (isBackendMode()) {
-            updateSaveStatus("Saving to the live database...");
+            updateSaveStatus("Saving to this private account...");
           } else {
             if (!state.fileHandle) return;
             updateSaveStatus("Saving to JSON...");
@@ -2422,7 +2670,7 @@
           if (ok) {
             updateSaveStatus(
               isBackendMode()
-                ? "Saved to the live database at " + formatTime(new Date().toISOString())
+                ? "Saved to this private account at " + formatTime(new Date().toISOString())
                 : "Saved to " + PROJECT_JSON + " at " + formatTime(new Date().toISOString())
             );
           }
@@ -2483,6 +2731,102 @@
         await connectToProjectJson(false);
       }
 
+      async function submitAuth(action) {
+        if (!isBackendMode()) return;
+
+        const username = elements.authUsernameInput.value.trim();
+        const password = elements.authPasswordInput.value;
+        const displayName = elements.authDisplayNameInput.value.trim();
+
+        if (!username || !password) {
+          updateSaveStatus("Enter a username and password first.");
+          return;
+        }
+
+        setAuthBusy(true);
+        updateSaveStatus(action === "register" ? "Creating account..." : "Signing in...");
+
+        try {
+          const response = await fetch(API_AUTH_URL, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            },
+            body: JSON.stringify({
+              action,
+              username,
+              password,
+              displayName
+            })
+          });
+
+          const payload = await response.json();
+          if (!response.ok || !payload || payload.ok !== true || !payload.bootstrap) {
+            throw new Error(payload && payload.message ? payload.message : "Could not complete account request.");
+          }
+
+          elements.authPasswordInput.value = "";
+          if (action === "register" && !displayName) {
+            elements.authDisplayNameInput.value = username;
+          }
+          applyBackendBootstrap(payload.bootstrap);
+          updateSaveStatus(payload.message || (action === "register" ? "Account created." : "Signed in."));
+        } catch (error) {
+          console.error(error);
+          updateSaveStatus(error && error.message ? error.message : "Could not complete account request.");
+        } finally {
+          setAuthBusy(false);
+        }
+      }
+
+      async function logoutBackendUser() {
+        if (!isBackendMode()) return;
+
+        setAuthBusy(true);
+        updateSaveStatus("Signing out...");
+
+        try {
+          const response = await fetch(API_AUTH_URL, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            },
+            body: JSON.stringify({
+              action: "logout"
+            })
+          });
+
+          const payload = await response.json();
+          if (!response.ok || !payload || payload.ok !== true || !payload.bootstrap) {
+            throw new Error(payload && payload.message ? payload.message : "Could not sign out.");
+          }
+
+          applyBackendBootstrap(payload.bootstrap);
+          updateSaveStatus(payload.message || "Signed out.");
+        } catch (error) {
+          console.error(error);
+          updateSaveStatus(error && error.message ? error.message : "Could not sign out.");
+        } finally {
+          setAuthBusy(false);
+        }
+      }
+
+      function setAuthBusy(isBusy) {
+        state.authBusy = Boolean(isBusy);
+        if (!elements.accountPanel) return;
+
+        elements.authDisplayNameInput.disabled = state.authBusy;
+        elements.authUsernameInput.disabled = state.authBusy;
+        elements.authPasswordInput.disabled = state.authBusy;
+        elements.loginButton.disabled = state.authBusy;
+        elements.registerButton.disabled = state.authBusy;
+        elements.logoutButton.disabled = state.authBusy;
+      }
+
       async function restoreLinkedFolder() {
         try {
           const handle = await readHandleFromDb();
@@ -2511,6 +2855,10 @@
       async function connectToProjectJson(forceWriteAfterLoad) {
         try {
           state.persistenceMode = "folder";
+          state.currentUser = null;
+          state.requiresAuth = false;
+          state.hasUsers = false;
+          state.legacyImportPending = false;
           configureFolderModeUi();
           state.fileHandle = await state.folderHandle.getFileHandle(PROJECT_JSON, { create: true });
           const file = await state.fileHandle.getFile();
@@ -2565,6 +2913,7 @@
         try {
           const response = await fetch(API_SAVE_URL, {
             method: "POST",
+            credentials: "same-origin",
             headers: {
               "Content-Type": "application/json",
               "Accept": "application/json"
@@ -2573,6 +2922,10 @@
           });
 
           const payload = await response.json();
+          if (response.status === 401) {
+            await connectToBackend();
+            throw new Error(payload && payload.message ? payload.message : "Your session expired. Please sign in again.");
+          }
           if (!response.ok || !payload || payload.ok !== true) {
             throw new Error(payload && payload.message ? payload.message : "Online save failed.");
           }
@@ -2662,7 +3015,7 @@
         queueSave();
         updateSaveStatus(
           isBackendMode()
-            ? "Saving to the live database..."
+            ? "Saving to this private account..."
             : (state.fileHandle ? "Saving to JSON..." : "Folder not linked yet. Changes are only in this tab for now.")
         );
       }
@@ -2711,7 +3064,8 @@
           const active = state.filter === filter ? " active" : "";
           const count = state.tasks.filter((task) => taskMatchesFilter(task, filter) && taskMatchesSearch(task)).length;
           const label = labelForFilter(filter) + " (" + count + ")";
-          return "<button type=\"button\" class=\"filter-chip" + active + "\" data-filter=\"" + escapeHtml(filter) + "\" aria-pressed=\"" + (state.filter === filter ? "true" : "false") + "\">" + escapeHtml(label) + "</button>";
+          const disabled = state.requiresAuth ? " disabled" : "";
+          return "<button type=\"button\" class=\"filter-chip" + active + "\" data-filter=\"" + escapeHtml(filter) + "\" aria-pressed=\"" + (state.filter === filter ? "true" : "false") + "\"" + disabled + ">" + escapeHtml(label) + "</button>";
         }).join("");
       }
 
