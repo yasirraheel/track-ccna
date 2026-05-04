@@ -1059,14 +1059,14 @@
           <span class="status-dot" style="background:#66d7c0;box-shadow:0 0 0 5px rgba(102, 215, 192, 0.12);"></span>
           <span id="saveStatusText">Progress will save into <strong>ccna-progress-data.json</strong> after folder link.</span>
         </div>
-        <div class="button-row">
+        <div class="button-row" id="syncActionRow">
           <button class="primary" id="linkFolderButton" type="button">Link Project Folder</button>
           <button class="secondary" id="reloadJsonButton" type="button">Reload JSON</button>
         </div>
-        <p class="muted" style="margin:0;">
+        <p class="muted" id="saveHelpPrimary" style="margin:0;">
           The first time, click <strong>Link Project Folder</strong> once so progress can save into the project JSON file.
         </p>
-        <p class="muted" style="margin:0;">
+        <p class="muted" id="saveHelpSecondary" style="margin:0;">
           Packet Tracer launch from the list needs the one-time open helper registration.
         </p>
       </aside>
@@ -1148,6 +1148,9 @@
       const HANDLE_STORE = "handles";
       const HANDLE_KEY = "project-folder";
       const FILTER_STORAGE_KEY = "ccna-lab-tracker-active-filter";
+      const API_BOOTSTRAP_URL = "api/bootstrap.php";
+      const API_SAVE_URL = "api/save.php";
+      const API_UPLOAD_URL = "api/upload.php";
       const FILTERS = ["all", "due", "overdue", "pending", "review", "completed", "recorded", "not-recorded"];
       const SEARCH_DEBOUNCE = 180;
       const RANDOM_SCHEDULE_DEFAULT_DAYS = 10;
@@ -1583,9 +1586,12 @@
         taskList: document.getElementById("taskList"),
         linkFolderButton: document.getElementById("linkFolderButton"),
         reloadJsonButton: document.getElementById("reloadJsonButton"),
+        syncActionRow: document.getElementById("syncActionRow"),
         folderStatusLine: document.getElementById("folderStatusLine"),
         folderStatusText: document.getElementById("folderStatusText"),
         saveStatusText: document.getElementById("saveStatusText"),
+        saveHelpPrimary: document.getElementById("saveHelpPrimary"),
+        saveHelpSecondary: document.getElementById("saveHelpSecondary"),
         scrollTopButton: document.getElementById("scrollTopButton"),
         globalImageInput: document.getElementById("globalImageInput"),
         imageTooltip: document.getElementById("imageTooltip")
@@ -1614,6 +1620,7 @@
         saveTimer: null,
         searchTimer: null,
         connectedFolderName: "",
+        persistenceMode: "tab",
         expandedTaskIds: new Set(),
         stickyStatsFrame: 0,
         pinnedVisibleTaskId: null
@@ -1623,12 +1630,82 @@
 
       async function init() {
         state.filter = loadSavedFilter();
-        renderFilterBar();
         bindEvents();
         updateScrollTopButtonVisibility();
         queueStickyStatsUpdate();
         render();
+        await initializePersistence();
+      }
+
+      async function initializePersistence() {
+        if (window.location.protocol !== "file:") {
+          const connected = await connectToBackend();
+          if (connected) return;
+          configureFolderModeUi();
+          updateFolderStatus(false, "Online database is unavailable");
+          updateSaveStatus("Online sync could not start. You can still link a local project folder in this browser.");
+          render();
+          return;
+        }
+
+        configureFolderModeUi();
         await restoreLinkedFolder();
+      }
+
+      async function connectToBackend() {
+        try {
+          const response = await fetch(API_BOOTSTRAP_URL, {
+            method: "GET",
+            cache: "no-store",
+            headers: {
+              "Accept": "application/json"
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error("Online database bootstrap returned " + response.status + ".");
+          }
+
+          const payload = await response.json();
+          if (!payload || payload.ok !== true || !Array.isArray(payload.tasks)) {
+            throw new Error("Online database bootstrap payload is invalid.");
+          }
+
+          state.tasks = mergeTasks(defaultTasks, payload.tasks);
+          state.persistenceMode = "database";
+          state.fileHandle = null;
+          state.folderHandle = null;
+          state.connectedFolderName = "";
+          configureBackendModeUi(payload.driver || "database");
+          updateFolderStatus(true, "Online database connected");
+          updateSaveStatus("Saving to the live database for all users.");
+          render();
+          return true;
+        } catch (error) {
+          console.error(error);
+          state.persistenceMode = "tab";
+          return false;
+        }
+      }
+
+      function configureBackendModeUi(driverLabel) {
+        elements.linkFolderButton.hidden = true;
+        elements.reloadJsonButton.hidden = false;
+        elements.reloadJsonButton.textContent = "Reload Online Data";
+        elements.saveHelpPrimary.innerHTML = "This live site now saves progress into the server database so all users stay in sync.";
+        elements.saveHelpSecondary.textContent = "Packet Tracer files still open normally from downloads, and image notes upload to the server attachments folder.";
+      }
+
+      function configureFolderModeUi() {
+        elements.linkFolderButton.hidden = false;
+        elements.reloadJsonButton.hidden = false;
+        elements.reloadJsonButton.textContent = "Reload JSON";
+        elements.saveHelpPrimary.innerHTML = "The first time, click <strong>Link Project Folder</strong> once so progress can save into the project JSON file.";
+        elements.saveHelpSecondary.textContent = "Packet Tracer launch from the list needs the one-time open helper registration.";
+      }
+
+      function isBackendMode() {
+        return state.persistenceMode === "database";
       }
 
       function bindEvents() {
@@ -1886,6 +1963,29 @@
       }
 
       async function saveImageToFolder(file) {
+        if (isBackendMode()) {
+          try {
+            const formData = new FormData();
+            formData.append("image", file);
+
+            const response = await fetch(API_UPLOAD_URL, {
+              method: "POST",
+              body: formData
+            });
+
+            const payload = await response.json();
+            if (!response.ok || !payload || payload.ok !== true || !payload.url) {
+              throw new Error(payload && payload.message ? payload.message : "Image upload failed.");
+            }
+
+            return payload.url;
+          } catch (error) {
+            console.error("Failed to upload image attachment:", error);
+            window.alert("Image upload failed. Please check that the live server upload API is working.");
+            return null;
+          }
+        }
+
         if (!state.folderHandle) {
           window.alert("Please Link Project Folder first so the image can be saved locally.");
           return null;
@@ -2083,7 +2183,7 @@
         render();
         updateSaveStatus(
           "Random schedule set for " + candidates.length + " labs across " + dayCount + " days, from " + formatDate(plan.startAt) + " to " + formatDate(plan.endAt) + "." +
-          (state.fileHandle ? "" : " Link the project folder to save it into JSON.")
+          (isBackendMode() ? "" : (state.fileHandle ? "" : " Link the project folder to save it into JSON."))
         );
       }
 
@@ -2311,11 +2411,20 @@
       function queueSave() {
         window.clearTimeout(state.saveTimer);
         state.saveTimer = window.setTimeout(async () => {
-          if (!state.fileHandle) return;
-          updateSaveStatus("Saving to JSON...");
-          const ok = await writeJsonFile();
+          if (isBackendMode()) {
+            updateSaveStatus("Saving to the live database...");
+          } else {
+            if (!state.fileHandle) return;
+            updateSaveStatus("Saving to JSON...");
+          }
+
+          const ok = isBackendMode() ? await writeBackendData() : await writeJsonFile();
           if (ok) {
-            updateSaveStatus("Saved to " + PROJECT_JSON + " at " + formatTime(new Date().toISOString()));
+            updateSaveStatus(
+              isBackendMode()
+                ? "Saved to the live database at " + formatTime(new Date().toISOString())
+                : "Saved to " + PROJECT_JSON + " at " + formatTime(new Date().toISOString())
+            );
           }
         }, 280);
       }
@@ -2362,6 +2471,11 @@
       }
 
       async function reloadFromJson() {
+        if (isBackendMode()) {
+          await connectToBackend();
+          return;
+        }
+
         if (!state.folderHandle) {
           updateSaveStatus("Link the project folder first.");
           return;
@@ -2396,6 +2510,8 @@
 
       async function connectToProjectJson(forceWriteAfterLoad) {
         try {
+          state.persistenceMode = "folder";
+          configureFolderModeUi();
           state.fileHandle = await state.folderHandle.getFileHandle(PROJECT_JSON, { create: true });
           const file = await state.fileHandle.getFile();
           const text = await file.text();
@@ -2435,22 +2551,7 @@
         if (!state.fileHandle) return false;
         try {
           const writable = await state.fileHandle.createWritable();
-          await writable.write(JSON.stringify({
-            version: 1,
-            savedAt: new Date().toISOString(),
-            tasks: state.tasks.map((task) => ({
-              id: task.id,
-              fileName: task.fileName,
-              status: task.status,
-              notes: task.notes,
-              updatedAt: task.updatedAt,
-              reviewIntervalDays: task.reviewIntervalDays,
-              lastReviewedAt: task.lastReviewedAt,
-              nextReviewAt: task.nextReviewAt,
-              lastScore: task.lastScore,
-              screenRecorded: Boolean(task.screenRecorded)
-            }))
-          }, null, 2));
+          await writable.write(JSON.stringify(buildSavePayload(), null, 2));
           await writable.close();
           return true;
         } catch (error) {
@@ -2458,6 +2559,50 @@
           updateSaveStatus("Save failed. Please relink the folder.");
           return false;
         }
+      }
+
+      async function writeBackendData() {
+        try {
+          const response = await fetch(API_SAVE_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            },
+            body: JSON.stringify(buildSavePayload())
+          });
+
+          const payload = await response.json();
+          if (!response.ok || !payload || payload.ok !== true) {
+            throw new Error(payload && payload.message ? payload.message : "Online save failed.");
+          }
+
+          return true;
+        } catch (error) {
+          console.error(error);
+          updateSaveStatus("Online save failed. Changes are still in this tab for now.");
+          return false;
+        }
+      }
+
+      function buildSavePayload() {
+        return {
+          version: 1,
+          savedAt: new Date().toISOString(),
+          tasks: state.tasks.map((task) => ({
+            id: task.id,
+            order: task.order,
+            fileName: task.fileName,
+            status: task.status,
+            notes: task.notes,
+            updatedAt: task.updatedAt,
+            reviewIntervalDays: task.reviewIntervalDays,
+            lastReviewedAt: task.lastReviewedAt,
+            nextReviewAt: task.nextReviewAt,
+            lastScore: task.lastScore,
+            screenRecorded: Boolean(task.screenRecorded)
+          }))
+        };
       }
 
       function mergeTasks(baseTasks, loadedTasks) {
@@ -2515,7 +2660,11 @@
           editor.innerHTML = sanitized;
         }
         queueSave();
-        updateSaveStatus(state.fileHandle ? "Saving to JSON..." : "Folder not linked yet. Changes are only in this tab for now.");
+        updateSaveStatus(
+          isBackendMode()
+            ? "Saving to the live database..."
+            : (state.fileHandle ? "Saving to JSON..." : "Folder not linked yet. Changes are only in this tab for now.")
+        );
       }
 
       function normalizeStatus(status) {
