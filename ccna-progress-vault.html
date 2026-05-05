@@ -466,6 +466,101 @@
       gap: 10px;
     }
 
+    .owner-panel {
+      margin-top: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .owner-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    .owner-card {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background:
+        radial-gradient(circle at top right, rgba(102, 215, 192, 0.12), transparent 32%),
+        rgba(0, 0, 0, 0.18);
+    }
+
+    .owner-card-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+      flex-wrap: wrap;
+    }
+
+    .owner-card-title {
+      display: grid;
+      gap: 4px;
+    }
+
+    .owner-card-title strong {
+      font-size: 1rem;
+    }
+
+    .owner-card-title span {
+      color: var(--muted);
+      font-size: 0.9rem;
+      word-break: break-word;
+    }
+
+    .owner-rate {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 68px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(102, 215, 192, 0.12);
+      border: 1px solid rgba(102, 215, 192, 0.28);
+      color: #dffff6;
+      font-weight: 800;
+      font-size: 0.95rem;
+    }
+
+    .owner-meta {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .owner-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .owner-stat {
+      display: grid;
+      gap: 2px;
+      padding: 10px 11px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .owner-stat strong {
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    .owner-stat span {
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
     .due-list {
       display: grid;
       gap: 10px;
@@ -1013,6 +1108,10 @@
         padding: 12px;
       }
 
+      .owner-stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       .stats {
         grid-template-columns: 1fr;
       }
@@ -1202,6 +1301,16 @@
         <span>Overdue</span>
         <strong id="dockPendingCount">0</strong>
       </article>
+    </section>
+
+    <section class="toolbar panel owner-panel" id="ownerPanel" hidden>
+      <div class="toolbar-head">
+        <div>
+          <h2>Student Overview</h2>
+          <div class="muted" id="ownerStudentsSummary">Owner view is ready.</div>
+        </div>
+      </div>
+      <div class="owner-grid" id="ownerStudentList"></div>
     </section>
 
     <section class="toolbar panel" id="dueBoard">
@@ -1697,6 +1806,9 @@
         resultsText: document.getElementById("resultsText"),
         dueBoardSummary: document.getElementById("dueBoardSummary"),
         dueList: document.getElementById("dueList"),
+        ownerPanel: document.getElementById("ownerPanel"),
+        ownerStudentsSummary: document.getElementById("ownerStudentsSummary"),
+        ownerStudentList: document.getElementById("ownerStudentList"),
         randomScheduleDays: document.getElementById("randomScheduleDays"),
         randomScheduleButton: document.getElementById("randomScheduleButton"),
         taskList: document.getElementById("taskList"),
@@ -1750,6 +1862,7 @@
         connectedFolderName: "",
         persistenceMode: "tab",
         currentUser: null,
+        ownerOverview: null,
         requiresAuth: false,
         hasUsers: false,
         legacyImportPending: false,
@@ -1820,6 +1933,7 @@
         state.folderHandle = null;
         state.connectedFolderName = "";
         state.currentUser = payload.user || null;
+        state.ownerOverview = payload.ownerOverview || null;
         state.requiresAuth = !state.currentUser;
         state.hasUsers = Boolean(payload.hasUsers);
         state.legacyImportPending = Boolean(payload.legacyImportPending);
@@ -1834,8 +1948,8 @@
           updateFolderStatus(true, "Signed in as " + state.currentUser.displayName);
           updateSaveStatus("Private progress is syncing for " + state.currentUser.displayName + ".");
         } else if (state.legacyImportPending && !state.hasUsers) {
-          updateFolderStatus(false, "Create the first account to keep the imported tracker data");
-          updateSaveStatus("Create the first account to move the current imported progress into your own private login.");
+          updateFolderStatus(false, "Create the first account to start the private student system");
+          updateSaveStatus("New accounts start fresh. The previously imported tracker data stays stored separately on the server.");
         } else {
           updateFolderStatus(false, "Sign in to load this student's private tracker");
           updateSaveStatus("Sign in or create an account so each student keeps separate progress.");
@@ -1850,10 +1964,12 @@
         elements.reloadJsonButton.textContent = "Reload Online Data";
         if (state.currentUser) {
           elements.saveHelpPrimary.innerHTML = "This live site now keeps each student's progress in a private " + escapeHtml(driverLabel) + " account.";
-          elements.saveHelpSecondary.textContent = "Packet Tracer files still open from the live site, and note images upload into this user's server storage.";
+          elements.saveHelpSecondary.textContent = state.currentUser.role === "owner"
+            ? "Owner accounts can also see brief progress stats for registered students, while Packet Tracer files and note images still stay user-specific."
+            : "Packet Tracer files still open from the live site, and note images upload into this user's server storage.";
         } else if (state.legacyImportPending && !state.hasUsers) {
-          elements.saveHelpPrimary.innerHTML = "Create the <strong>first account</strong> to claim the current imported tracker data under your own login.";
-          elements.saveHelpSecondary.textContent = "After that, every new student account starts with a separate fresh copy so nobody mixes each other's work.";
+          elements.saveHelpPrimary.innerHTML = "Create the <strong>first account</strong> to start the private student system.";
+          elements.saveHelpSecondary.textContent = "Every new account starts with a fresh separate copy so nobody mixes each other's work.";
         } else {
           elements.saveHelpPrimary.innerHTML = "Each student should sign in with a personal account so progress, notes, schedules, and recorded marks stay separate.";
           elements.saveHelpSecondary.textContent = "Live data is stored on the server per user, while Packet Tracer files still open directly from the site.";
@@ -1865,6 +1981,7 @@
         elements.reloadJsonButton.hidden = false;
         elements.reloadJsonButton.textContent = "Reload JSON";
         elements.accountPanel.hidden = true;
+        elements.ownerPanel.hidden = true;
         elements.saveHelpPrimary.innerHTML = "The first time, click <strong>Link Project Folder</strong> once so progress can save into the project JSON file.";
         elements.saveHelpSecondary.textContent = "Packet Tracer launch from the list needs the one-time open helper registration.";
       }
@@ -1885,14 +2002,48 @@
 
         if (state.currentUser) {
           elements.accountWelcomeText.textContent = state.currentUser.displayName + " (" + state.currentUser.username + ")";
-          elements.accountMetaText.textContent = "Role: " + state.currentUser.role + " | Synced privately in " + String(driverLabel).toUpperCase() + ".";
+          elements.accountMetaText.textContent = state.currentUser.role === "owner"
+            ? "Role: owner | Synced privately in " + String(driverLabel).toUpperCase() + " | Student summary view enabled."
+            : "Role: " + state.currentUser.role + " | Synced privately in " + String(driverLabel).toUpperCase() + ".";
         } else if (state.legacyImportPending && !state.hasUsers) {
-          elements.accountHelpText.textContent = "Create the first account here to keep the current imported tracker data under your own login. Later student accounts start fresh and separate.";
+          elements.accountHelpText.textContent = "Create the first account here to start the private user system. New accounts begin with a fresh separate tracker copy.";
         } else {
           elements.accountHelpText.textContent = "Create a separate account for each student so notes, progress, schedules, and screen-recording marks never mix together.";
         }
 
         setAuthBusy(state.authBusy);
+      }
+
+      function renderOwnerOverview() {
+        const isOwner = Boolean(state.currentUser && state.currentUser.role === "owner");
+        elements.ownerPanel.hidden = !isOwner;
+
+        if (!isOwner) {
+          elements.ownerStudentsSummary.textContent = "";
+          elements.ownerStudentList.innerHTML = "";
+          return;
+        }
+
+        const students = state.ownerOverview && Array.isArray(state.ownerOverview.students)
+          ? state.ownerOverview.students
+          : [];
+        const totalStudents = Number(state.ownerOverview && state.ownerOverview.studentCount) || students.length;
+
+        elements.ownerStudentsSummary.textContent = totalStudents
+          ? totalStudents + (totalStudents === 1 ? " student account is registered." : " student accounts are registered.")
+          : "No student accounts have been created yet.";
+
+        if (!students.length) {
+          elements.ownerStudentList.innerHTML = [
+            "<div class=\"empty\">",
+            "  <strong>No student accounts yet</strong>",
+            "  Once students create accounts, their brief progress stats will appear here for the owner.",
+            "</div>"
+          ].join("");
+          return;
+        }
+
+        elements.ownerStudentList.innerHTML = students.map(renderOwnerStudentCard).join("");
       }
 
       function bindEvents() {
@@ -2253,6 +2404,7 @@
         const previousOffset = preserveTaskId ? getTaskViewportTop(preserveTaskId) : null;
         renderFilterBar();
         updateInteractiveState();
+        renderOwnerOverview();
         const filtered = getVisibleTasks();
         const reviewSummary = summarizeReviewQueue();
         const completed = state.tasks.filter((task) => task.status === "completed").length;
@@ -2299,6 +2451,52 @@
         elements.searchInput.placeholder = locked ? LOCKED_SEARCH_PLACEHOLDER : SEARCH_PLACEHOLDER;
         elements.randomScheduleDays.disabled = locked;
         elements.randomScheduleButton.disabled = locked;
+      }
+
+      function renderOwnerStudentCard(student) {
+        const completionRate = clampWholeNumber(student.completionRate, 0, 100, 0);
+        return [
+          "<article class=\"owner-card\">",
+          "  <div class=\"owner-card-top\">",
+          "    <div class=\"owner-card-title\">",
+          "      <strong>" + escapeHtml(student.displayName || student.username || "Student") + "</strong>",
+          "      <span>@" + escapeHtml(student.username || "student") + "</span>",
+          "    </div>",
+          "    <div class=\"owner-rate\">" + escapeHtml(String(completionRate)) + "%</div>",
+          "  </div>",
+          "  <div class=\"owner-meta\">",
+          "    <span>Completed " + escapeHtml(String(student.completedLabs || 0)) + " of " + escapeHtml(String(student.totalLabs || 0)) + " labs</span>",
+          "    <span>Last login: " + escapeHtml(formatOwnerStamp(student.lastLoginAt, "Not available yet")) + "</span>",
+          "    <span>Last activity: " + escapeHtml(formatOwnerStamp(student.lastActivityAt, "No tracker changes yet")) + "</span>",
+          "  </div>",
+          "  <div class=\"owner-stat-grid\">",
+          renderOwnerStat("Completed", student.completedLabs || 0),
+          renderOwnerStat("Review", student.reviewLabs || 0),
+          renderOwnerStat("Due Now", student.dueNowLabs || 0),
+          renderOwnerStat("Overdue", student.overdueLabs || 0),
+          renderOwnerStat("Recorded", student.recordedLabs || 0),
+          renderOwnerStat("Total", student.totalLabs || 0),
+          "  </div>",
+          "</article>"
+        ].join("");
+      }
+
+      function renderOwnerStat(label, value) {
+        return [
+          "<div class=\"owner-stat\">",
+          "  <strong>" + escapeHtml(String(value)) + "</strong>",
+          "  <span>" + escapeHtml(label) + "</span>",
+          "</div>"
+        ].join("");
+      }
+
+      function formatOwnerStamp(value, fallback) {
+        if (!value) return fallback;
+        const parsed = new Date(value);
+        if (!Number.isFinite(parsed.getTime())) {
+          return fallback;
+        }
+        return formatDateTime(value);
       }
 
       function renderTaskRow(task) {
@@ -2856,6 +3054,7 @@
         try {
           state.persistenceMode = "folder";
           state.currentUser = null;
+          state.ownerOverview = null;
           state.requiresAuth = false;
           state.hasUsers = false;
           state.legacyImportPending = false;

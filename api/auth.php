@@ -18,8 +18,8 @@ try {
     if ($action === 'register') {
         $result = trackerRegisterUser($boot['pdo'], $payload);
         $message = ($result['seedMode'] ?? '') === 'legacy'
-            ? 'Account created. Your existing tracker data has been moved into this private login.'
-            : 'Account created. Your private tracker is ready.';
+            ? 'Account created. Imported backup progress was attached to this private login.'
+            : 'Account created. Your private tracker is ready with a fresh copy of the labs.';
     } elseif ($action === 'login') {
         trackerLoginUser($boot['pdo'], $payload);
         $message = 'Signed in successfully.';

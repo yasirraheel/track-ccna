@@ -229,8 +229,13 @@ function trackerBuildBootstrapPayload(array $boot): array
             'requiresAuth' => true,
             'user' => null,
             'tasks' => [],
+            'ownerOverview' => null,
         ];
     }
+
+    $ownerOverview = trackerUserIsOwner($currentUser)
+        ? trackerFetchOwnerStudentOverview($pdo, (string) $currentUser['id'])
+        : null;
 
     return [
         'ok' => true,
@@ -242,6 +247,7 @@ function trackerBuildBootstrapPayload(array $boot): array
         'requiresAuth' => false,
         'user' => trackerUserPublicPayload($currentUser),
         'tasks' => trackerFetchUserTasks($pdo, (string) $currentUser['id']),
+        'ownerOverview' => $ownerOverview,
     ];
 }
 
@@ -322,6 +328,160 @@ function trackerFetchUserTasks(PDO $pdo, string $userId): array
     ]);
 
     return array_map('trackerMapTaskRow', $statement->fetchAll());
+}
+
+function trackerFetchOwnerStudentOverview(PDO $pdo, string $ownerUserId): array
+{
+    $students = trackerFetchStudentSummaries($pdo, $ownerUserId);
+
+    return [
+        'studentCount' => count($students),
+        'students' => $students,
+    ];
+}
+
+function trackerFetchStudentSummaries(PDO $pdo, string $ownerUserId): array
+{
+    $statement = $pdo->prepare(
+        'SELECT
+            id,
+            username,
+            display_name,
+            role,
+            created_at,
+            updated_at,
+            last_login_at
+         FROM tracker_users
+         WHERE role = :role
+           AND id <> :owner_id
+         ORDER BY COALESCE(last_login_at, created_at) DESC, username ASC'
+    );
+    $statement->execute([
+        'role' => 'student',
+        'owner_id' => $ownerUserId,
+    ]);
+
+    $students = [];
+    foreach ($statement->fetchAll() as $row) {
+        $userId = (string) $row['id'];
+        $tasks = trackerFetchUserTasks($pdo, $userId);
+        $stats = trackerSummarizeUserTasks($tasks);
+
+        $students[] = [
+            'id' => $userId,
+            'username' => (string) $row['username'],
+            'displayName' => (string) $row['display_name'],
+            'role' => (string) ($row['role'] ?? 'student'),
+            'createdAt' => trackerNullableString($row['created_at'] ?? null),
+            'updatedAt' => trackerNullableString($row['updated_at'] ?? null),
+            'lastLoginAt' => trackerNullableString($row['last_login_at'] ?? null),
+            'lastActivityAt' => $stats['lastActivityAt'],
+            'totalLabs' => $stats['totalLabs'],
+            'completedLabs' => $stats['completedLabs'],
+            'reviewLabs' => $stats['reviewLabs'],
+            'recordedLabs' => $stats['recordedLabs'],
+            'dueNowLabs' => $stats['dueNowLabs'],
+            'overdueLabs' => $stats['overdueLabs'],
+            'completionRate' => $stats['completionRate'],
+        ];
+    }
+
+    return $students;
+}
+
+function trackerSummarizeUserTasks(array $tasks): array
+{
+    $now = new DateTimeImmutable('now');
+    $summary = [
+        'totalLabs' => count($tasks),
+        'completedLabs' => 0,
+        'reviewLabs' => 0,
+        'recordedLabs' => 0,
+        'dueNowLabs' => 0,
+        'overdueLabs' => 0,
+        'completionRate' => 0,
+        'lastActivityAt' => null,
+    ];
+
+    foreach ($tasks as $task) {
+        $status = trackerNormalizeStatus((string) ($task['status'] ?? 'pending'));
+        if ($status === 'completed') {
+            $summary['completedLabs'] += 1;
+        } elseif ($status === 'review') {
+            $summary['reviewLabs'] += 1;
+        }
+
+        if (!empty($task['screenRecorded'])) {
+            $summary['recordedLabs'] += 1;
+        }
+
+        $reviewBucket = trackerReviewTimingBucket($task['nextReviewAt'] ?? null, $now);
+        if ($reviewBucket === 'due') {
+            $summary['dueNowLabs'] += 1;
+        } elseif ($reviewBucket === 'overdue') {
+            $summary['overdueLabs'] += 1;
+        }
+
+        $summary['lastActivityAt'] = trackerLaterIsoValue(
+            $summary['lastActivityAt'],
+            trackerNullableString($task['updatedAt'] ?? null)
+        );
+    }
+
+    if ($summary['totalLabs'] > 0) {
+        $summary['completionRate'] = (int) round(($summary['completedLabs'] / $summary['totalLabs']) * 100);
+    }
+
+    return $summary;
+}
+
+function trackerReviewTimingBucket(?string $nextReviewAt, ?DateTimeImmutable $now = null): string
+{
+    $normalized = trackerNullableString($nextReviewAt);
+    if ($normalized === null) {
+        return 'none';
+    }
+
+    try {
+        $dueAt = new DateTimeImmutable($normalized);
+    } catch (Throwable $error) {
+        return 'none';
+    }
+
+    $now = $now ?? new DateTimeImmutable('now');
+    if ($dueAt > $now) {
+        return 'scheduled';
+    }
+
+    $overdueSeconds = $now->getTimestamp() - $dueAt->getTimestamp();
+    $overdueHours = (int) floor($overdueSeconds / 3600);
+    $dueLocal = $dueAt->setTimezone($now->getTimezone());
+
+    if ($overdueHours >= 24 || $dueLocal->format('Y-m-d') !== $now->format('Y-m-d')) {
+        return 'overdue';
+    }
+
+    return 'due';
+}
+
+function trackerLaterIsoValue(?string $current, ?string $candidate): ?string
+{
+    if ($candidate === null) {
+        return $current;
+    }
+
+    if ($current === null) {
+        return $candidate;
+    }
+
+    try {
+        $currentDate = new DateTimeImmutable($current);
+        $candidateDate = new DateTimeImmutable($candidate);
+    } catch (Throwable $error) {
+        return $current;
+    }
+
+    return $candidateDate > $currentDate ? $candidate : $current;
 }
 
 function trackerSaveTasks(PDO $pdo, array $tasks, string $source = 'api'): void
@@ -618,7 +778,6 @@ function trackerRegisterUser(PDO $pdo, array $payload): array
     $now = gmdate(DATE_ATOM);
     $userId = trackerGenerateOpaqueId('usr_');
     $isFirstUser = !trackerAnyUsers($pdo);
-    $claimLegacy = $isFirstUser && trackerLegacyImportPending($pdo);
 
     $pdo->beginTransaction();
 
@@ -655,7 +814,7 @@ function trackerRegisterUser(PDO $pdo, array $payload): array
             'last_login_at' => $now,
         ]);
 
-        $seedMode = trackerInitializeUserTaskSet($pdo, $userId, $claimLegacy);
+        $seedMode = trackerInitializeUserTaskSet($pdo, $userId, false);
         $pdo->commit();
     } catch (Throwable $error) {
         if ($pdo->inTransaction()) {
@@ -830,6 +989,11 @@ function trackerUserPublicPayload(array $user): array
         'createdAt' => trackerNullableString($user['created_at'] ?? null),
         'lastLoginAt' => trackerNullableString($user['last_login_at'] ?? null),
     ];
+}
+
+function trackerUserIsOwner(array $user): bool
+{
+    return (string) ($user['role'] ?? '') === 'owner';
 }
 
 function trackerSaveMeta(PDO $pdo, string $key, string $value): void
